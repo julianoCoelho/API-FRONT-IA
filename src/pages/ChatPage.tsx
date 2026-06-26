@@ -1,5 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
+import { useFileUpload } from '../hooks/useFileUpload';
 import AppLayout from '../components/layout/AppLayout';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
@@ -7,7 +8,8 @@ import ChatWindow from '../components/chat/ChatWindow';
 
 export default function ChatPage() {
   const { user, logout } = useAuth();
-  const { sessions, activeSession, messages, sendMessage, selectSession, createSession, isLoading } = useChat();
+  const { sessions, activeSession, messages, sendMessage, selectSession, createSession, isLoading, isSending } = useChat();
+  const { uploadFile: _uploadFile } = useFileUpload();
 
   return (
     <AppLayout
@@ -21,7 +23,7 @@ export default function ChatPage() {
       }
       header={<Header username={user?.username ?? 'Usuário'} onLogout={logout} />}
     >
-      <ChatWindow messages={messages} onSendMessage={sendMessage} isLoading={isLoading} />
+      <ChatWindow messages={messages} onSendMessage={sendMessage} isLoading={isLoading || isSending} />
     </AppLayout>
   );
 }
