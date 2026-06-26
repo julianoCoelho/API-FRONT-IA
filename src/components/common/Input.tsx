@@ -1,10 +1,12 @@
 import type { ComponentPropsWithoutRef } from 'react'
 
 interface InputProps extends ComponentPropsWithoutRef<'input'> {
+  label?: string
   error?: string
 }
 
 export function Input({
+  label,
   error,
   className = '',
   id,
@@ -14,6 +16,11 @@ export function Input({
 
   return (
     <div className="flex flex-col gap-1">
+      {label && (
+        <label htmlFor={inputId} className="text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
       <input
         id={inputId}
         className={`rounded-lg border px-3 py-2 text-sm transition-colors placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${
