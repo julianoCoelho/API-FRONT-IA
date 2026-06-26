@@ -2,28 +2,21 @@ import { useState, type FormEvent } from 'react'
 import { Input } from '../common/Input.tsx'
 import { Button } from '../common/Button.tsx'
 
-interface RegisterFormData {
-  name: string
-  email: string
-  password: string
-  confirmPassword: string
-}
-
 interface RegisterFormProps {
+  onSubmit: (username: string, email: string, password: string) => void
   isLoading?: boolean
-  error?: string
-  onSubmit: (data: RegisterFormData) => void
+  error?: string | null
 }
 
-export function RegisterForm({ isLoading, error, onSubmit }: RegisterFormProps) {
-  const [name, setName] = useState('')
+export default function RegisterForm({ onSubmit, isLoading, error }: RegisterFormProps) {
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    onSubmit({ name, email, password, confirmPassword })
+    if (isLoading) return
+    onSubmit(username, email, password)
   }
 
   return (
@@ -35,13 +28,14 @@ export function RegisterForm({ isLoading, error, onSubmit }: RegisterFormProps) 
       )}
 
       <Input
-        label="Nome"
+        label="Usuário"
         type="text"
-        name="name"
-        placeholder="Seu nome"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        name="username"
+        placeholder="Seu usuário"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         required
+        disabled={isLoading}
       />
 
       <Input
@@ -51,7 +45,7 @@ export function RegisterForm({ isLoading, error, onSubmit }: RegisterFormProps) 
         placeholder="seu@email.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        required
+        disabled={isLoading}
       />
 
       <Input
@@ -62,16 +56,7 @@ export function RegisterForm({ isLoading, error, onSubmit }: RegisterFormProps) 
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
-      />
-
-      <Input
-        label="Confirmar Senha"
-        type="password"
-        name="confirmPassword"
-        placeholder="Repita a senha"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-        required
+        disabled={isLoading}
       />
 
       <Button type="submit" isLoading={isLoading} className="mt-2">
@@ -80,5 +65,3 @@ export function RegisterForm({ isLoading, error, onSubmit }: RegisterFormProps) 
     </form>
   )
 }
-
-export default RegisterForm

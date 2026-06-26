@@ -12,6 +12,7 @@ interface ChatWindowProps {
   messages: Message[]
   onSendMessage: (text: string) => void
   onAttach?: () => void
+  disabled?: boolean
   attachments?: Attachment[]
   onRemoveAttachment?: (index: number) => void
 }
@@ -20,6 +21,7 @@ export function ChatWindow({
   messages,
   onSendMessage,
   onAttach,
+  disabled,
   attachments,
   onRemoveAttachment,
 }: ChatWindowProps) {
@@ -40,7 +42,7 @@ export function ChatWindow({
         </div>
       )}
 
-      <MessageInput onSendMessage={onSendMessage} onAttach={onAttach} />
+      <MessageInput onSendMessage={onSendMessage} onAttach={onAttach} disabled={disabled} />
     </div>
   )
 }

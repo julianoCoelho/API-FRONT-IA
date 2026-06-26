@@ -4,4 +4,6 @@ export interface Message {
   id: string
   content: string
   role: MessageRole
+  chatSessionId?: string
+  timestamp?: string
 }

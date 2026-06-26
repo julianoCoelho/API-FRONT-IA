@@ -2,24 +2,20 @@ import { useState, type FormEvent } from 'react'
 import { Input } from '../common/Input.tsx'
 import { Button } from '../common/Button.tsx'
 
-interface LoginFormData {
-  email: string
-  password: string
-}
-
 interface LoginFormProps {
+  onSubmit: (username: string, password: string) => void
   isLoading?: boolean
-  error?: string
-  onSubmit: (data: LoginFormData) => void
+  error?: string | null
 }
 
-export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
-  const [email, setEmail] = useState('')
+export default function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    onSubmit({ email, password })
+    if (isLoading) return
+    onSubmit(username, password)
   }
 
   return (
@@ -31,13 +27,14 @@ export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
       )}
 
       <Input
-        label="Email"
-        type="email"
-        name="email"
-        placeholder="seu@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        label="Usuário"
+        type="text"
+        name="username"
+        placeholder="Seu usuário"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
         required
+        disabled={isLoading}
       />
 
       <Input
@@ -48,6 +45,7 @@ export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        disabled={isLoading}
       />
 
       <Button type="submit" isLoading={isLoading} className="mt-2">
@@ -56,5 +54,3 @@ export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
     </form>
   )
 }
-
-export default LoginForm

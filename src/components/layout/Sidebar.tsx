@@ -1,4 +1,16 @@
-const navItems = [
+interface Session {
+  id: string
+  title: string
+}
+
+interface SidebarProps {
+  sessions: Session[]
+  activeSessionId?: string
+  onSelectSession: (id: string) => void
+  onCreateSession: () => void
+}
+
+const navItems: { label: string; icon: string }[] = [
   { label: 'Dashboard', icon: 'dashboard' },
   { label: 'Upload', icon: 'upload' },
   { label: 'Histórico', icon: 'history' },
@@ -20,7 +32,7 @@ const iconPaths: Record<string, JSX.Element> = {
   ),
 }
 
-export function Sidebar() {
+export default function Sidebar({ sessions, activeSessionId, onSelectSession, onCreateSession }: SidebarProps) {
   return (
     <div className="flex h-full flex-col bg-gray-900 text-white">
       <div className="flex items-center gap-3 px-6 py-5">
@@ -30,27 +42,52 @@ export function Sidebar() {
         <span className="text-lg font-semibold">API Front IA</span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {navItems.map((item) => (
-          <button
-            key={item.label}
-            type="button"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
-          >
-            <svg
-              className="h-5 w-5 flex-shrink-0"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              aria-hidden="true"
+      <button
+        onClick={onCreateSession}
+        className="mx-3 mb-2 rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+      >
+        + Nova conversa
+      </button>
+
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        {sessions.length > 0 && (
+          <div className="mb-3 space-y-1">
+            {sessions.map((session) => (
+              <button
+                key={session.id}
+                type="button"
+                onClick={() => onSelectSession(session.id)}
+                data-active={session.id === activeSessionId}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white data-[active=true]:bg-gray-800 data-[active=true]:text-white"
+              >
+                {session.title}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="border-t border-gray-700 pt-3">
+          {navItems.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
             >
-              {iconPaths[item.icon]}
-            </svg>
-            {item.label}
-          </button>
-        ))}
+              <svg
+                className="h-5 w-5 flex-shrink-0"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                {iconPaths[item.icon]}
+              </svg>
+              {item.label}
+            </button>
+          ))}
+        </div>
       </nav>
 
       <div className="border-t border-gray-700 px-6 py-4">
@@ -59,5 +96,3 @@ export function Sidebar() {
     </div>
   )
 }
-
-export default Sidebar
