@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { chatService } from '../services/chat.service'
+import { chatDeleteService } from '../services/chat-delete.service'
 import type { ChatSessionResponse, MessageResponse } from '../types/api'
 
 export interface UseChatReturn {
@@ -12,6 +13,9 @@ export interface UseChatReturn {
   sendMessage: (content: string) => Promise<void>
   createSession: (title: string) => Promise<void>
   selectSession: (id: string) => void
+  renameSession: (id: string, title: string) => void
+  deleteSession: (id: string) => Promise<void>
+  exportSessionAsTxt: () => void
 }
 
 export function useChat(): UseChatReturn {
@@ -28,16 +32,13 @@ export function useChat(): UseChatReturn {
     try {
       const data = await chatService.getSessions()
       setSessions(data)
-      if (data.length > 0 && !activeSession) {
-        setActiveSession(data[0])
-      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar sessões'
       setError(message)
     } finally {
       setIsLoading(false)
     }
-  }, [activeSession])
+  }, [])
 
   useEffect(() => {
     loadSessions()
@@ -64,6 +65,12 @@ export function useChat(): UseChatReturn {
       loadMessages(session.id)
     }
   }, [sessions, loadMessages])
+
+  useEffect(() => {
+    if (sessions.length > 0 && !activeSession) {
+      selectSession(sessions[0].id)
+    }
+  }, [sessions, activeSession, selectSession])
 
   const createSession = useCallback(async (title: string) => {
     setError(null)
@@ -105,6 +112,48 @@ export function useChat(): UseChatReturn {
     }
   }, [activeSession])
 
+  const renameSession = useCallback((id: string, title: string) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, title } : s))
+    )
+    setActiveSession((prev) => (prev?.id === id && prev ? { ...prev, title } : prev))
+  }, [])
+
+  const deleteSession = useCallback(async (id: string) => {
+    setError(null)
+    try {
+      await chatDeleteService.deleteSession(id)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao apagar sessão'
+      setError(message)
+    }
+
+    setSessions((prev) => prev.filter((s) => s.id !== id))
+    setActiveSession((prev) => {
+      if (prev?.id === id) {
+        setMessages([])
+        return null
+      }
+      return prev
+    })
+  }, [])
+
+  const exportSessionAsTxt = useCallback(() => {
+    if (messages.length === 0) return
+
+    const lines = messages.map(
+      (m) => `[${m.timestamp}] ${m.role}: ${m.content}`
+    )
+    const content = lines.join('\n')
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `chat-${activeSession?.title ?? 'export'}.txt`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }, [messages, activeSession])
+
   return {
     sessions,
     activeSession,
@@ -115,5 +164,8 @@ export function useChat(): UseChatReturn {
     sendMessage,
     createSession,
     selectSession,
+    renameSession,
+    deleteSession,
+    exportSessionAsTxt,
   }
 }

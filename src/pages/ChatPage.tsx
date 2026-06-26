@@ -9,7 +9,7 @@ import ChatWindow from '../components/chat/ChatWindow'
 
 export default function ChatPage() {
   const { user: _user, logout } = useAuth()
-  const { sessions, activeSession, messages, sendMessage, selectSession, createSession, isSending } = useChat()
+  const { sessions, activeSession, messages, sendMessage, selectSession, createSession, renameSession, deleteSession, exportSessionAsTxt, isSending } = useChat()
   const { uploadFile, isUploading, uploadProgress } = useFileUpload()
 
   const [attachments, setAttachments] = useState<{ fileName: string; progress?: number }[]>([])
@@ -68,6 +68,8 @@ export default function ChatPage() {
           activeSessionId={activeSession?.id}
           onSelectSession={selectSession}
           onCreateSession={() => createSession('Nova conversa')}
+          onRenameSession={renameSession}
+          onDeleteSession={deleteSession}
         />
       }
     >
@@ -84,6 +86,7 @@ export default function ChatPage() {
         disabled={isSending || isUploading}
         attachments={attachments}
         onRemoveAttachment={handleRemoveAttachment}
+        onExport={exportSessionAsTxt}
       />
 
       <input
