@@ -1,40 +1,60 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react'
+import { Input } from '../common/Input.tsx'
+import { Button } from '../common/Button.tsx'
+
+interface LoginFormData {
+  email: string
+  password: string
+}
 
 interface LoginFormProps {
-  onSubmit: (username: string, password: string) => void;
+  isLoading?: boolean
+  error?: string
+  onSubmit: (data: LoginFormData) => void
 }
 
-export default function LoginForm({ onSubmit }: LoginFormProps) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+export function LoginForm({ isLoading, error, onSubmit }: LoginFormProps) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(username, password);
-  };
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    onSubmit({ email, password })
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-sm flex-col gap-4">
-      <h1 className="text-2xl font-bold">Entrar</h1>
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Usuário"
-        className="rounded border px-3 py-2"
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {error && (
+        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
+          {error}
+        </div>
+      )}
+
+      <Input
+        label="Email"
+        type="email"
+        name="email"
+        placeholder="seu@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
         required
       />
-      <input
+
+      <Input
+        label="Senha"
         type="password"
+        name="password"
+        placeholder="Sua senha"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="Senha"
-        className="rounded border px-3 py-2"
         required
       />
-      <button type="submit" className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+
+      <Button type="submit" isLoading={isLoading} className="mt-2">
         Entrar
-      </button>
+      </Button>
     </form>
-  );
+  )
 }
+
+export default LoginForm

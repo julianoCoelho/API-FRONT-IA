@@ -1,17 +1,21 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 interface AppLayoutProps {
-  sidebar: ReactNode;
-  header: ReactNode;
-  children: ReactNode;
+  sidebar: ReactNode
+  children: ReactNode
 }
 
-export default function AppLayout({ sidebar, header, children }: AppLayoutProps) {
+export function AppLayout({ sidebar, children }: AppLayoutProps) {
   return (
-    <div className="grid min-h-screen grid-cols-[260px_1fr] grid-rows-[auto_1fr]">
-      <div className="col-span-2">{header}</div>
-      <div className="row-start-2">{sidebar}</div>
-      <main className="row-start-2 overflow-auto">{children}</main>
+    <div className="flex h-screen bg-gray-50">
+      <aside className="fixed inset-y-0 left-0 z-30 w-64">
+        {sidebar}
+      </aside>
+      <main className="ml-64 flex flex-1 flex-col overflow-auto">
+        {children}
+      </main>
     </div>
-  );
+  )
 }
+
+export default AppLayout
