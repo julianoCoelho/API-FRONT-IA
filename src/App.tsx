@@ -10,10 +10,30 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
+  console.log('[ProtectedRoute]', {
+    pathname: window.location.pathname,
+    isAuthenticated,
+    isLoading,
+  });
+
   if (isLoading) return <div>Carregando...</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return <Outlet />;
+}
+
+function RootRedirect() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  console.log('[RootRedirect]', {
+    pathname: window.location.pathname,
+    isAuthenticated,
+    isLoading,
+  });
+
+  if (isLoading) return <div>Carregando...</div>;
+  if (isAuthenticated) return <Navigate to="/chat" replace />;
+  return <Navigate to="/login" replace />;
 }
 
 function AppRoutes() {
@@ -21,6 +41,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/" element={<RootRedirect />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/chat" element={<ChatPage />} />
       </Route>

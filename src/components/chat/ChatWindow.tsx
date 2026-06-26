@@ -1,3 +1,4 @@
+import { useState, type DragEvent } from 'react'
 import type { Message } from './types.ts'
 import { MessageList } from './MessageList.tsx'
 import { MessageInput } from './MessageInput.tsx'
@@ -12,6 +13,7 @@ interface ChatWindowProps {
   messages: Message[]
   onSendMessage: (text: string) => void
   onAttach?: () => void
+  onFileDrop?: (file: File) => void
   disabled?: boolean
   attachments?: Attachment[]
   onRemoveAttachment?: (index: number) => void
@@ -21,12 +23,49 @@ export function ChatWindow({
   messages,
   onSendMessage,
   onAttach,
+  onFileDrop,
   disabled,
   attachments,
   onRemoveAttachment,
 }: ChatWindowProps) {
+  const [isDragging, setIsDragging] = useState(false)
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  function handleDragEnter(e: DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const file = e.dataTransfer.files[0]
+    if (file && onFileDrop) {
+      onFileDrop(file)
+    }
+  }
+
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div
+      className={`flex h-full flex-col bg-white ${isDragging ? 'ring-2 ring-blue-500 ring-inset' : ''}`}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <MessageList messages={messages} />
 
       {attachments && attachments.length > 0 && (

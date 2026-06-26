@@ -19,8 +19,7 @@ export default function ChatPage() {
     fileInputRef.current?.click()
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+  async function handleFileDrop(file: File) {
     if (!file) return
 
     setAttachments((prev) => [...prev, { fileName: file.name, progress: 0 }])
@@ -51,6 +50,12 @@ export default function ChatPage() {
     setTimeout(() => setAttachments([]), 3000)
   }
 
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await handleFileDrop(file)
+  }
+
   function handleRemoveAttachment(index: number) {
     setAttachments((prev) => prev.filter((_, i) => i !== index))
   }
@@ -75,6 +80,7 @@ export default function ChatPage() {
         messages={messages}
         onSendMessage={sendMessage}
         onAttach={handleAttach}
+        onFileDrop={handleFileDrop}
         disabled={isSending || isUploading}
         attachments={attachments}
         onRemoveAttachment={handleRemoveAttachment}
