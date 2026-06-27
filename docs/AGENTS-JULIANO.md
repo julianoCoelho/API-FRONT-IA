@@ -53,3 +53,33 @@ Precisamos garantir que o Critério de Aceite (DoD Compacto) do plano de sprint 
 1. Certifique-se de que o MSW está configurado para iniciar em modo de desenvolvimento através de 'worker.start({ onUnhandledRequest: 'warn' })'.
 2. Verifique se o roteamento lida perfeitamente com fluxos onde o token não existe, jogando o usuário para o fluxo de autenticação.
 3. Ajuste quaisquer inconsistências de tipagem TypeScript originadas dos schemas importados do 'src/types/api.ts' nas páginas que conectam a UI aos hooks.
+
+---
+
+### 5. Atualização de Contrato OpenAPI para RAG (Parte 1)
+
+**Context:** Atualização de contrato OpenAPI para RAG (Parte 2).
+**Role:** Tech Lead / Infraestrutura.
+**Instructions:** Atualize `src/mocks/swagger.yaml` com schemas `DocumentResponse`, `DocumentStatus` e `RagMessageResponse`. Após isso, regenere as interfaces em `src/types/api.ts`.
+**Standards:** Salve este prompt em `docs/AGENTS-Juliano.md`. Mantenha histórico das alterações de contratos.
+**Purpose:** Garantir tipagem forte para a ingestão de docs e fontes do RAG.
+
+---
+
+### 6. Mocking de Rotas de Documentos e RAG (Parte 2)
+
+**Context:** Mocking de rotas de documentos e RAG.
+**Role:** Tech Lead / Infraestrutura.
+**Instructions:** Crie `src/mocks/fixtures/documents.ts` e `sources.ts`. Implemente os handlers no `handlers.ts` para: POST `/documents` (upload), GET `/documents/{id}` (polling status) e a nova estrutura de resposta do chat com `sources`.
+**Standards:** Valide se os status (PENDING, PROCESSING, COMPLETED, FAILED) estão sendo simulados corretamente.
+**Purpose:** Permitir desenvolvimento paralelo sem dependência do backend real.
+
+---
+
+### 7. Service Layer para Documentos (Parte 3)
+
+**Context:** Service layer para documentos.
+**Role:** Tech Lead / Infraestrutura.
+**Instructions:** Crie `src/services/document.service.ts` com métodos `ingestDocument`, `getDocumentStatus` e `reprocessDocument`. Use o `axios` configurado com o interceptor de JWT.
+**Standards:** Use tipagens de `api.ts`. Garantir tratamento de erro básico.
+**Purpose:** Abstrair complexidade de rede para a camada de Hooks.
