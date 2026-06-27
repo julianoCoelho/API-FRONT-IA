@@ -2,6 +2,8 @@ import { http, HttpResponse } from 'msw'
 import { users } from './fixtures/users'
 import { sessions } from './fixtures/sessions'
 import { getMessagesBySessionId, addMessage } from './fixtures/messages'
+import { findDocument, updateDocumentStatus, addDocument } from './fixtures/documents'
+import { getRandomSources } from './fixtures/sources'
 
 function unauthorized(message = 'Não autenticado') {
   return HttpResponse.json(
@@ -171,6 +173,8 @@ export const handlers = [
     }
     addMessage(userMessage)
 
+    const sources = getRandomSources(1 + Math.floor(Math.random() * 2))
+
     const assistantMessage = {
       id: crypto.randomUUID(),
       chatSessionId: body.chatSessionId,
@@ -180,7 +184,7 @@ export const handlers = [
     }
     addMessage(assistantMessage)
 
-    return HttpResponse.json(assistantMessage)
+    return HttpResponse.json({ ...assistantMessage, sources })
   }),
 
   // POST /api/chat/files
@@ -245,5 +249,91 @@ export const handlers = [
       status: 'UP',
       timestamp: new Date().toISOString(),
     })
+  }),
+
+  // POST /api/documents — upload document for RAG ingestion
+  http.post('*/api/documents', async ({ request }) => {
+    if (!isAuthenticated(request)) return unauthorized()
+
+    const clonedRequest = request.clone()
+    const formData = await clonedRequest.formData()
+    const file = formData.get('file') as File | null
+
+    if (!file) {
+      return badRequest('Nenhum arquivo enviado')
+    }
+
+    const allowedTypes = ['text/plain', 'application/pdf']
+    if (!allowedTypes.includes(file.type)) {
+      return badRequest('Formato inválido. Apenas TXT e PDF são aceitos.')
+    }
+
+    if (file.size > 5_242_880) {
+      return HttpResponse.json(
+        {
+          status: 413,
+          error: 'Payload Too Large',
+          message: 'Arquivo excede o limite de 5MB.',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 413 },
+      )
+    }
+
+    const id = crypto.randomUUID()
+    const uploadedAt = new Date().toISOString()
+
+    addDocument({
+      id,
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+      status: 'PENDING',
+      uploadedAt,
+    })
+
+    return HttpResponse.json(
+      {
+        id,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        status: 'PENDING' as const,
+        uploadedAt,
+      },
+      { status: 201 },
+    )
+  }),
+
+  // GET /api/documents/:id — polling de status do documento
+  http.get('*/api/documents/:id', ({ params, request }) => {
+    if (!isAuthenticated(request)) return unauthorized()
+
+    const { id } = params
+    const doc = findDocument(id as string)
+
+    if (!doc) return notFound('Documento')
+
+    // Simula progressão de status baseada no tempo decorrido desde o upload
+    if (doc.status === 'PENDING' || doc.status === 'PROCESSING') {
+      const elapsed = Date.now() - new Date(doc.uploadedAt).getTime()
+
+      if (elapsed >= 8000) {
+        const shouldFail =
+          doc.id.startsWith('fail-') ||
+          doc.fileName.toLowerCase().includes('error')
+        updateDocumentStatus(
+          doc.id,
+          shouldFail ? 'FAILED' : 'COMPLETED',
+          shouldFail
+            ? 'Falha ao processar o documento: formato não suportado'
+            : undefined,
+        )
+      } else if (elapsed >= 3000) {
+        updateDocumentStatus(doc.id, 'PROCESSING')
+      }
+    }
+
+    return HttpResponse.json({ ...doc })
   }),
 ]
