@@ -336,4 +336,28 @@ export const handlers = [
 
     return HttpResponse.json({ ...doc })
   }),
+
+  // POST /api/documents/:id/reprocess — reprocessar documento
+  http.post('*/api/documents/:id/reprocess', ({ params, request }) => {
+    if (!isAuthenticated(request)) return unauthorized()
+
+    const { id } = params
+    const doc = findDocument(id as string)
+
+    if (!doc) return notFound('Documento')
+
+    updateDocumentStatus(doc.id, 'PROCESSING')
+
+    return HttpResponse.json(
+      {
+        id: doc.id,
+        fileName: doc.fileName,
+        fileSize: doc.fileSize,
+        mimeType: doc.mimeType,
+        status: 'PROCESSING' as const,
+        uploadedAt: doc.uploadedAt,
+      },
+      { status: 202 },
+    )
+  }),
 ]

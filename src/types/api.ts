@@ -623,8 +623,24 @@ export type FileUploadResponse = components["schemas"]["FileUploadResponse"];
 export type ErrorResponse = components["schemas"]["ErrorResponse"];
 export type DocumentStatus = components["schemas"]["DocumentStatus"];
 export type DocumentResponse = components["schemas"]["DocumentResponse"];
-export type RagMessageResponse = components["schemas"]["RagMessageResponse"];
+export type DocumentStatusResponse = DocumentResponse & {
+    completedAt?: string | null;
+    errorMessage?: string | null;
+};
+export type RagMessageResponse = components["schemas"]["MessageResponse"] & {
+    sources?: SourceResponse[];
+};
 export type HealthResponse = {
     status: string;
     timestamp: string;
 };
+export interface SourceResponse {
+    documentId: string;
+    documentName: string;
+    chunkIndex: number;
+    excerpt: string;
+    score: number;
+}
+export interface CreateSessionRequest {
+    title: string;
+}

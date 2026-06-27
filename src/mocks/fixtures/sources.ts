@@ -1,45 +1,51 @@
 export interface MockSource {
-  id: string
-  fileName: string
-  snippet: string
-  relevance: number
+  documentId: string
+  documentName: string
+  chunkIndex: number
+  excerpt: string
+  score: number
 }
 
 export const sources: MockSource[] = [
   {
-    id: 'src-001-xxxx-yyyy-zzzz-000000000001',
-    fileName: 'manual-typescript.pdf',
-    snippet:
+    documentId: 'doc-001-aaaa-bbbb-cccc-ddddeeee0001',
+    documentName: 'manual-typescript.pdf',
+    chunkIndex: 2,
+    excerpt:
       'TypeScript é um superconjunto do JavaScript que adiciona tipagem estática opcional, permitindo detectar erros em tempo de compilação.',
-    relevance: 0.95,
+    score: 0.95,
   },
   {
-    id: 'src-002-xxxx-yyyy-zzzz-000000000002',
-    fileName: 'guia-rapido-react.txt',
-    snippet:
+    documentId: 'doc-002-aaaa-bbbb-cccc-ddddeeee0002',
+    documentName: 'guia-rapido-react.txt',
+    chunkIndex: 5,
+    excerpt:
       'React é uma biblioteca JavaScript para construir interfaces de usuário baseadas em componentes reutilizáveis e estado unidirecional.',
-    relevance: 0.87,
+    score: 0.87,
   },
   {
-    id: 'src-003-xxxx-yyyy-zzzz-000000000003',
-    fileName: 'especificacao-api.pdf',
-    snippet:
+    documentId: 'doc-003-aaaa-bbbb-cccc-ddddeeee0003',
+    documentName: 'especificacao-api.pdf',
+    chunkIndex: 1,
+    excerpt:
       'A API segue o padrão RESTful com autenticação via JWT Bearer tokens e suporte a upload de arquivos TXT e PDF até 5MB.',
-    relevance: 0.92,
+    score: 0.92,
   },
   {
-    id: 'src-004-xxxx-yyyy-zzzz-000000000004',
-    fileName: 'manual-typescript.pdf',
-    snippet:
+    documentId: 'doc-001-aaaa-bbbb-cccc-ddddeeee0001',
+    documentName: 'manual-typescript.pdf',
+    chunkIndex: 10,
+    excerpt:
       'Interfaces no TypeScript permitem definir contratos para a forma dos objetos, especificando propriedades e métodos obrigatórios.',
-    relevance: 0.78,
+    score: 0.78,
   },
   {
-    id: 'src-005-xxxx-yyyy-zzzz-000000000005',
-    fileName: 'especificacao-api.pdf',
-    snippet:
+    documentId: 'doc-003-aaaa-bbbb-cccc-ddddeeee0003',
+    documentName: 'especificacao-api.pdf',
+    chunkIndex: 8,
+    excerpt:
       'O endpoint /documents gerencia a ingestão de documentos no pipeline RAG, suportando os status PENDING, PROCESSING, COMPLETED e FAILED.',
-    relevance: 0.71,
+    score: 0.71,
   },
 ]
 

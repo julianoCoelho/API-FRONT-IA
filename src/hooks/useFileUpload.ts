@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fileService } from '../services/file.service'
-import type { FileUploadResponse } from '../types/api'
+import type { DocumentStatus, FileUploadResponse } from '../types/api'
 
 export interface UseFileUploadReturn {
   uploadFile: (file: File) => Promise<FileUploadResponse | null>
@@ -8,6 +8,8 @@ export interface UseFileUploadReturn {
   uploadProgress: number
   error: string | null
   uploadedFile: FileUploadResponse | null
+  ingestionStatus: DocumentStatus | null
+  ingestionDocumentId: string | null
 }
 
 const ALLOWED_TYPES = ['text/plain', 'application/pdf']
@@ -18,11 +20,15 @@ export function useFileUpload(): UseFileUploadReturn {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null)
+  const [ingestionStatus, setIngestionStatus] = useState<DocumentStatus | null>(null)
+  const [ingestionDocumentId, setIngestionDocumentId] = useState<string | null>(null)
 
   const uploadFile = async (file: File): Promise<FileUploadResponse | null> => {
     setError(null)
     setUploadedFile(null)
     setUploadProgress(0)
+    setIngestionStatus(null)
+    setIngestionDocumentId(null)
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       const msg = 'Formato inválido. Apenas arquivos TXT e PDF são permitidos.'
@@ -58,5 +64,7 @@ export function useFileUpload(): UseFileUploadReturn {
     uploadProgress,
     error,
     uploadedFile,
+    ingestionStatus,
+    ingestionDocumentId,
   }
 }

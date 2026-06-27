@@ -1,5 +1,5 @@
 import { api } from './api'
-import type { DocumentResponse } from '../types/api'
+import type { DocumentResponse, DocumentStatusResponse } from '../types/api'
 
 export const documentService = {
   ingestDocument(
@@ -23,7 +23,7 @@ export const documentService = {
       .then((res) => res.data)
   },
 
-  getDocumentStatus(id: string): Promise<DocumentResponse> {
+  getDocumentStatus(id: string): Promise<DocumentStatusResponse> {
     return api.get(`/documents/${id}`).then((res) => res.data)
   },
 

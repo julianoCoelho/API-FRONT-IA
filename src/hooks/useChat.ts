@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect } from 'react'
 import { chatService } from '../services/chat.service'
 import { chatDeleteService } from '../services/chat-delete.service'
-import type { ChatSessionResponse, MessageResponse } from '../types/api'
+import type { ChatSessionResponse, MessageResponse, SourceResponse } from '../types/api'
 
 export interface UseChatReturn {
   sessions: ChatSessionResponse[]
   activeSession: ChatSessionResponse | null
   messages: MessageResponse[]
+  sourcesByMessageId: Record<string, SourceResponse[]>
   isLoading: boolean
   isSending: boolean
   error: string | null
@@ -22,6 +23,7 @@ export function useChat(): UseChatReturn {
   const [sessions, setSessions] = useState<ChatSessionResponse[]>([])
   const [activeSession, setActiveSession] = useState<ChatSessionResponse | null>(null)
   const [messages, setMessages] = useState<MessageResponse[]>([])
+  const [sourcesByMessageId, setSourcesByMessageId] = useState<Record<string, SourceResponse[]>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -99,11 +101,14 @@ export function useChat(): UseChatReturn {
       }
       setMessages((prev) => [...prev, userMessage])
 
-      const response = await chatService.sendMessage({
+      const { sources, ...response } = await chatService.sendMessage({
         chatSessionId: activeSession.id,
         content,
       })
       setMessages((prev) => [...prev, response])
+      if (sources?.length) {
+        setSourcesByMessageId((prev) => ({ ...prev, [response.id]: sources }))
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao enviar mensagem'
       setError(message)
@@ -158,6 +163,7 @@ export function useChat(): UseChatReturn {
     sessions,
     activeSession,
     messages,
+    sourcesByMessageId,
     isLoading,
     isSending,
     error,

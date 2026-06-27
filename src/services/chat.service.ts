@@ -1,5 +1,5 @@
 import { api } from './api'
-import type { ChatSessionResponse, MessageResponse, SendMessageRequest } from '../types/api'
+import type { ChatSessionResponse, MessageResponse, RagMessageResponse, SendMessageRequest } from '../types/api'
 
 export const chatService = {
   getSessions(): Promise<ChatSessionResponse[]> {
@@ -14,7 +14,7 @@ export const chatService = {
     return api.get(`/chat/sessions/${sessionId}/messages`).then((res) => res.data)
   },
 
-  sendMessage(data: SendMessageRequest): Promise<MessageResponse> {
+  sendMessage(data: SendMessageRequest): Promise<RagMessageResponse> {
     return api.post('/chat/messages', data).then((res) => res.data)
   },
 }

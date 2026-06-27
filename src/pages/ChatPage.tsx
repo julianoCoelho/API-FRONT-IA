@@ -11,8 +11,8 @@ import ChatWindow from '../components/chat/ChatWindow'
 interface Attachment {
   fileName: string
   progress?: number
-  ingestionStatus?: string
-  ingestionError?: string
+  ingestionStatus?: string | null
+  ingestionError?: string | null
 }
 
 export default function ChatPage() {
