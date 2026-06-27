@@ -63,6 +63,7 @@ export function useChat(): UseChatReturn {
   const selectSession = useCallback((id: string) => {
     const session = sessions.find((s) => s.id === id) ?? null
     setActiveSession(session)
+    setSourcesByMessageId({})
     if (session) {
       loadMessages(session.id)
     }
@@ -81,6 +82,7 @@ export function useChat(): UseChatReturn {
       setSessions((prev) => [newSession, ...prev])
       setActiveSession(newSession)
       setMessages([])
+      setSourcesByMessageId({})
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar sessão'
       setError(message)
@@ -110,8 +112,15 @@ export function useChat(): UseChatReturn {
         setSourcesByMessageId((prev) => ({ ...prev, [response.id]: sources }))
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao enviar mensagem'
-      setError(message)
+      const is503 =
+        (err instanceof Object && 'response' in err &&
+          (err as { response: { status: number } }).response?.status === 503)
+      if (is503) {
+        setError('O assistente está temporariamente indisponível. Sua mensagem foi salva.')
+      } else {
+        const message = err instanceof Error ? err.message : 'Erro ao enviar mensagem'
+        setError(message)
+      }
     } finally {
       setIsSending(false)
     }
