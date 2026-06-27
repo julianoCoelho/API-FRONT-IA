@@ -1,13 +1,13 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { documentService } from '../services/document.service'
-import type { DocumentResponse } from '../types/api'
+import type { DocumentResponse, DocumentStatusResponse } from '../types/api'
 
 export interface UseDocumentsReturn {
   documents: DocumentResponse[]
   isLoading: boolean
   error: string | null
   ingestDocument: (file: File) => Promise<DocumentResponse | null>
-  pollDocumentStatus: (id: string, onComplete?: (doc: DocumentResponse) => void) => void
+  pollDocumentStatus: (id: string, onComplete?: (doc: DocumentStatusResponse) => void) => void
   reprocessDocument: (id: string) => Promise<void>
 }
 
@@ -16,6 +16,15 @@ export function useDocuments(): UseDocumentsReturn {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current)
+        pollingRef.current = null
+      }
+    }
+  }, [])
 
   const ingestDocument = useCallback(
     async (file: File): Promise<DocumentResponse | null> => {
@@ -37,7 +46,7 @@ export function useDocuments(): UseDocumentsReturn {
   )
 
   const pollDocumentStatus = useCallback(
-    (id: string, onComplete?: (doc: DocumentResponse) => void) => {
+    (id: string, onComplete?: (doc: DocumentStatusResponse) => void) => {
       if (pollingRef.current) clearInterval(pollingRef.current)
 
       pollingRef.current = setInterval(async () => {
@@ -48,11 +57,15 @@ export function useDocuments(): UseDocumentsReturn {
           if (doc.status === 'COMPLETED' || doc.status === 'FAILED') {
             if (pollingRef.current) clearInterval(pollingRef.current)
             pollingRef.current = null
+            if (doc.status === 'FAILED') {
+              setError(doc.errorMessage ?? 'Falha no processamento do documento')
+            }
             onComplete?.(doc)
           }
         } catch {
           if (pollingRef.current) clearInterval(pollingRef.current)
           pollingRef.current = null
+          setError('Erro de conexão ao verificar status do documento')
         }
       }, 2000)
     },
