@@ -159,6 +159,19 @@ export const handlers = [
       return badRequest('A mensagem excede o limite de 10.000 caracteres')
     }
 
+    // Simula 503 para teste de erro do LLM (trigger: mensagem com "503" isolado)
+    if (body.content.includes('503')) {
+      return HttpResponse.json(
+        {
+          status: 503,
+          error: 'Service Unavailable',
+          message: 'LLM temporariamente indisponível. Mensagem salva.',
+          timestamp: new Date().toISOString(),
+        },
+        { status: 503 },
+      )
+    }
+
     const session = sessions.find((s) => s.id === body.chatSessionId)
     if (!session) {
       return notFound('Sessão')
