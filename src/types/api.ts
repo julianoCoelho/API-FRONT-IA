@@ -241,9 +241,21 @@ export interface components {
             /** Format: date-time */
             processedAt?: string | null;
         };
+        SourceResponse: {
+            /** Format: uuid */
+            id: string;
+            fileName: string;
+            /** @description Trecho do documento utilizado como fonte */
+            snippet: string;
+            /**
+             * Format: float
+             * @description Pontuação de relevância (0 a 1)
+             */
+            relevance: number;
+        };
         RagMessageResponse: components["schemas"]["MessageResponse"] & {
             /** @description Fontes utilizadas pelo RAG na resposta */
-            sources?: components["schemas"]["DocumentResponse"][];
+            sources?: components["schemas"]["SourceResponse"][];
         };
     };
     responses: never;
@@ -623,6 +635,7 @@ export type FileUploadResponse = components["schemas"]["FileUploadResponse"];
 export type ErrorResponse = components["schemas"]["ErrorResponse"];
 export type DocumentStatus = components["schemas"]["DocumentStatus"];
 export type DocumentResponse = components["schemas"]["DocumentResponse"];
+export type SourceResponse = components["schemas"]["SourceResponse"];
 export type RagMessageResponse = components["schemas"]["RagMessageResponse"];
 export type HealthResponse = {
     status: string;

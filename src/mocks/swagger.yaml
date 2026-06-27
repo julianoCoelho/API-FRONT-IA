@@ -180,6 +180,25 @@ components:
           format: date-time
           nullable: true
 
+    SourceResponse:
+      type: object
+      required: [id, fileName, snippet, relevance]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        snippet:
+          type: string
+          description: Trecho do documento utilizado como fonte
+        relevance:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Pontuação de relevância (0 a 1)
+
     RagMessageResponse:
       type: object
       allOf:
@@ -189,7 +208,7 @@ components:
             sources:
               type: array
               items:
-                $ref: '#/components/schemas/DocumentResponse'
+                $ref: '#/components/schemas/SourceResponse'
               description: Fontes utilizadas pelo RAG na resposta
 
 paths:
