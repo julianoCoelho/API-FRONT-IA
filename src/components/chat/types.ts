@@ -1,3 +1,5 @@
+import type { SourceResponse } from '../../types/source'
+
 export type MessageRole = 'USER' | 'ASSISTANT'
 
 export interface Message {
@@ -6,4 +8,5 @@ export interface Message {
   role: MessageRole
   chatSessionId?: string
   timestamp?: string
+  sources?: SourceResponse[]
 }
