@@ -17,4 +17,8 @@ export const chatService = {
   sendMessage(data: SendMessageRequest): Promise<RagMessageResponse> {
     return api.post('/chat/messages', data).then((res) => res.data)
   },
+
+  renameSession(id: string, title: string): Promise<{ id: string; title: string }> {
+    return api.patch(`/chat/sessions/${id}`, { title }).then((res) => res.data)
+  },
 }

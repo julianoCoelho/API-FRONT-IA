@@ -81,13 +81,13 @@ export function useChat(): UseChatReturn {
       const newSession = await chatService.createSession(title)
       setSessions((prev) => [newSession, ...prev])
       setActiveSession(newSession)
-      setMessages([])
       setSourcesByMessageId({})
+      await loadMessages(newSession.id)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar sessão'
       setError(message)
     }
-  }, [])
+  }, [loadMessages])
 
   const sendMessage = useCallback(async (content: string) => {
     if (!activeSession) return
@@ -131,6 +131,9 @@ export function useChat(): UseChatReturn {
       prev.map((s) => (s.id === id ? { ...s, title } : s))
     )
     setActiveSession((prev) => (prev?.id === id && prev ? { ...prev, title } : prev))
+    chatService.renameSession(id, title).catch(() => {
+      // falha silenciosa — estado React já foi atualizado
+    })
   }, [])
 
   const deleteSession = useCallback(async (id: string) => {

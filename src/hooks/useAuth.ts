@@ -23,6 +23,7 @@ export function useAuth(): UseAuthReturn {
     setLoading(true)
     try {
       const response = await authService.login(data)
+      localStorage.setItem('current_user', data.username)
       authLogin(response.token)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login'
@@ -54,6 +55,9 @@ export function useAuth(): UseAuthReturn {
     error,
     login,
     register,
-    logout: authLogout,
+    logout: () => {
+      localStorage.removeItem('current_user')
+      authLogout()
+    },
   }
 }

@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
-import { users } from './fixtures/users'
-import { sessions } from './fixtures/sessions'
-import { getMessagesBySessionId, addMessage } from './fixtures/messages'
+import { users, addUser } from './fixtures/users'
+import { sessions, addSession, removeSession, renameSessionInStore } from './fixtures/sessions'
+import { getMessagesBySessionId, addMessage, deleteMessagesBySessionId } from './fixtures/messages'
 import { findDocument, updateDocumentStatus, addDocument } from './fixtures/documents'
 import { getRandomSources } from './fixtures/sources'
 
@@ -85,7 +85,7 @@ export const handlers = [
       password: body.password,
       email: body.email,
     }
-    users.push(newUser)
+    addUser(newUser)
 
     return HttpResponse.json(
       {
@@ -121,7 +121,16 @@ export const handlers = [
       title: body.title,
       createdAt: new Date().toISOString(),
     }
-    sessions.unshift(newSession)
+    addSession(newSession)
+
+    const welcomeMessage = {
+      id: crypto.randomUUID(),
+      chatSessionId: newSession.id,
+      role: 'ASSISTANT' as const,
+      content: 'Olá! Como posso ajudar você hoje?',
+      timestamp: new Date().toISOString(),
+    }
+    addMessage(welcomeMessage)
 
     return HttpResponse.json(newSession, { status: 201 })
   }),
@@ -141,6 +150,35 @@ export const handlers = [
 
     const messages = getMessagesBySessionId(sessionId as string)
     return HttpResponse.json(messages)
+  }),
+
+  // PATCH /api/chat/sessions/:sessionId — rename
+  http.patch('*/api/chat/sessions/:sessionId', async ({ params, request }) => {
+    if (!isAuthenticated(request)) return unauthorized()
+    const { sessionId } = params
+    const session = sessions.find((s) => s.id === sessionId)
+    if (!session) return notFound('Sessão')
+    const body = await request.json() as { title: string }
+    if (!body.title || body.title.trim().length === 0) {
+      return badRequest('Título não pode estar vazio')
+    }
+    renameSessionInStore(sessionId as string, body.title.trim())
+    return HttpResponse.json({ ...session, title: body.title.trim() })
+  }),
+
+  // DELETE /api/chat/sessions/:sessionId
+  http.delete('*/api/chat/sessions/:sessionId', ({ params, request }) => {
+    if (!isAuthenticated(request)) return unauthorized()
+
+    const { sessionId } = params
+    const session = sessions.find((s) => s.id === sessionId)
+
+    if (!session) return notFound('Sessão')
+
+    deleteMessagesBySessionId(sessionId as string)
+    removeSession(sessionId as string)
+
+    return new HttpResponse(null, { status: 204 })
   }),
 
   // POST /api/chat/messages
