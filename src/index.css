@@ -1,2 +1,36 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
+
+@theme {
+  --color-earth-sage: #8FAD7A;
+  --color-earth-olive: #7A9132;
+  --color-earth-khaki: #C4B06A;
+  --color-earth-sand: #D4C99A;
+  --color-earth-forest: #3A6B35;
+  --color-earth-dark: #2D4A28;
+  --color-earth-cream: #F5F0E8;
+}
+
+/* Scrollbar customizada — webkit */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #8FAD7A;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #7A9132;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #8FAD7A transparent;
+}

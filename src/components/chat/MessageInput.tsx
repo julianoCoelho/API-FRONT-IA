@@ -17,6 +17,7 @@ export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInput
     setText('')
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
+      textareaRef.current.focus()
     }
   }
 
@@ -35,13 +36,13 @@ export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInput
   }
 
   return (
-    <div className="flex items-end gap-2 border-t border-gray-200 bg-white px-4 py-3">
+    <div className="flex items-end gap-2 border-t border-earth-sand/50 bg-earth-cream/60 backdrop-blur-sm px-4 py-3">
       {onAttach && (
         <button
           type="button"
           onClick={onAttach}
           disabled={disabled}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-earth-sage transition-colors hover:bg-earth-sand/40 hover:text-earth-forest disabled:opacity-50"
           aria-label="Anexar arquivo"
         >
           <svg
@@ -68,17 +69,16 @@ export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInput
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
         onInput={handleInput}
-        disabled={disabled}
         placeholder="Digite sua mensagem..."
         rows={1}
-        className="min-h-[40px] flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+        className="min-h-[40px] flex-1 resize-none rounded-xl border border-earth-sand px-3 py-2.5 text-sm placeholder:text-earth-sage/50 focus:border-earth-olive focus:outline-none focus:ring-1 focus:ring-earth-olive disabled:cursor-not-allowed disabled:opacity-50 bg-white/80"
       />
 
       <button
         type="button"
         onClick={handleSend}
         disabled={disabled || !text.trim()}
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-earth-olive text-white shadow-sm transition-colors hover:bg-earth-forest disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Enviar mensagem"
       >
         <svg

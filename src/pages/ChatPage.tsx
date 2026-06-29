@@ -92,7 +92,7 @@ export default function ChatPage() {
 
   return (
     <AppLayout
-      sidebar={
+      sidebar={(isCollapsed, onToggle) => (
         <Sidebar
           sessions={sessions}
           activeSessionId={activeSession?.id}
@@ -100,12 +100,14 @@ export default function ChatPage() {
           onCreateSession={() => createSession('Nova conversa')}
           onRenameSession={renameSession}
           onDeleteSession={deleteSession}
+          isCollapsed={isCollapsed}
+          onToggle={onToggle}
+          onLogout={logout}
         />
-      }
+      )}
     >
       <Header
         title={activeSession?.title ?? `Chat IA`}
-        onLogout={logout}
       />
 
       <ChatWindow

@@ -18,7 +18,7 @@ export function SourcePanel({ sources, className = '' }: SourcePanelProps) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-left text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+        className="flex w-full items-center justify-between rounded-lg bg-earth-sand/20 px-3 py-2 text-left text-xs text-earth-sage transition-colors hover:bg-earth-sand/40 hover:text-earth-forest"
       >
         <span>{label}</span>
         <ChevronIcon className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -30,14 +30,14 @@ export function SourcePanel({ sources, className = '' }: SourcePanelProps) {
         <div className="overflow-hidden">
           <ul className="mt-2 space-y-2">
             {sources.map((source) => (
-              <li key={source.id} className="rounded-lg bg-gray-50 p-2.5">
+              <li key={source.id} className="rounded-lg bg-earth-sand/20 border border-earth-sand/40 p-2.5">
                 <div className="flex items-baseline gap-1">
-                  <span className="truncate font-medium text-gray-900">{source.documentName}</span>
+                  <span className="truncate font-semibold text-earth-forest">{source.documentName}</span>
                   {source.page != null && (
-                    <span className="shrink-0 text-xs text-gray-500">· p. {source.page}</span>
+                    <span className="shrink-0 text-xs text-earth-khaki">· p. {source.page}</span>
                   )}
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-gray-700">{source.snippet}</p>
+                <p className="mt-1 text-sm leading-relaxed text-earth-dark/80">{source.snippet}</p>
               </li>
             ))}
           </ul>
