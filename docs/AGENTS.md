@@ -236,6 +236,8 @@ Regras:
 
 > **Prompt:** Atue como Arquiteto Front-end Sênior. Integre `useHealth` e `HealthStatusBadge` no `Header.tsx`, mantendo a separação Apresentação vs Comportamento.
 
+> **Observação:** Removido posteriormente — o Header foi simplificado para conter apenas título e botão Sair. O `HealthStatusBadge` foi movido para o rodapé do Sidebar (ver Iteração 3).
+
 ### MSW — `src/mocks/handlers.ts`
 
 > **Prompt:** Atue como Engenheiro de Software especialista em MSW. Adicione handler para o webhook do n8n em `src/mocks/handlers.ts`.
@@ -264,4 +266,31 @@ VITE_N8N_WEBHOOK_URL=http://localhost:5678/webhook/health-check
 - `n8n/` removido do repositório — o workflow de health check pertence ao `lab1-n8n/n8n/workflows/001-health-check.json`
 - Frontend conhece apenas o endpoint (`VITE_N8N_WEBHOOK_URL`), sem qualquer dependência de infraestrutura n8n
 - MSW handler mantido para desenvolvimento local sem depender do n8n
-- Hook `useHealth`, componente `HealthStatusBadge` e integração no Header inalterados
+- Hook `useHealth` e componente `HealthStatusBadge` inalterados
+
+### Iteração 3 — Movendo `HealthStatusBadge` do Header para o rodapé do Sidebar
+
+**Motivação:** O Header foi simplificado para conter apenas título e botão Sair (tema earth-tone). O `HealthStatusBadge` foi realocado para o rodapé do Sidebar, onde fica menos intrusivo e mais acessível.
+
+**Arquivo alterado:** `src/components/layout/Sidebar.tsx`
+
+**Mudanças:**
+1. Adicionados imports de `useHealth` e `HealthStatusBadge`
+2. Instanciado `const { isActive, lastCheck } = useHealth()` no corpo do componente
+3. Adicionado footer com `border-t border-earth-forest/30` após a `<nav>` de sessões
+4. Badge fica centralizado quando sidebar está colapsada (`flex justify-center`)
+
+**Arquitetura atual:**
+```
+Sidebar (componente)
+  ├── Topo: hamburger toggle + botão Sair
+  ├── Branding: "IA" + "API Front IA"
+  ├── Botão: "+ Nova conversa"
+  ├── Nav: lista de sessões
+  └── Rodapé: <HealthStatusBadge /> ← useHealth()
+```
+
+**Comportamento:**
+- Colapsada: badge centralizado, compacto
+- Expandida: badge alinhado à esquerda com timestamp
+- Cores: 🟢 API Ativa / 🔴 API Inativa / ⚪ Verificando...

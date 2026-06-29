@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import { useHealth } from '../../hooks/useHealth'
+import { HealthStatusBadge } from '../common/HealthStatusBadge'
 
 interface Session {
   id: string
@@ -216,6 +218,8 @@ export default function Sidebar({
   onToggle,
   onLogout,
 }: SidebarProps) {
+  const { isActive, lastCheck } = useHealth()
+
   return (
     <div className="flex h-full flex-col bg-earth-dark text-white rounded-r-3xl">
       <div className={`flex items-center px-4 py-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
@@ -287,6 +291,10 @@ export default function Sidebar({
           </div>
         )}
       </nav>
+
+      <div className={`border-t border-earth-forest/30 px-4 py-3 ${isCollapsed ? 'flex justify-center' : ''}`}>
+        <HealthStatusBadge isActive={isActive} lastCheck={lastCheck} />
+      </div>
     </div>
   )
 }

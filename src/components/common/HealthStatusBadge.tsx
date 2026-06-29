@@ -28,10 +28,10 @@ export function HealthStatusBadge({ isActive, lastCheck }: HealthStatusBadgeProp
     <div className="flex flex-col items-end gap-0.5">
       <div className="flex items-center gap-1.5">
         <span className={`inline-block h-2 w-2 rounded-full ${dotColor}`} />
-        <span className="text-xs font-medium text-gray-600">{label}</span>
+        <span className="text-xs font-medium text-white">{label}</span>
       </div>
       {lastCheck && (
-        <span className="text-[10px] text-gray-400">
+        <span className="text-[10px] text-white/60">
           Última verificação: {formatTime(lastCheck)}
         </span>
       )}
