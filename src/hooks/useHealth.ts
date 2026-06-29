@@ -1,31 +1,43 @@
 import { useState, useEffect } from 'react'
-import { api } from '../services/api'
-import type { HealthResponse } from '../types/api'
 
-export interface UseHealthReturn {
-  status: string | null
-  isLoading: boolean
-  error: string | null
+interface N8nHealthResponse {
+  status: string
+  timestamp: string
+  source: string
 }
 
+export interface UseHealthReturn {
+  isActive: boolean
+  isLoading: boolean
+  lastCheck: string | null
+}
+
+const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL ?? 'http://localhost:5678/webhook/health-check'
+const POLLING_INTERVAL = 30_000
+
 export function useHealth(): UseHealthReturn {
-  const [status, setStatus] = useState<string | null>(null)
+  const [isActive, setIsActive] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [lastCheck, setLastCheck] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function checkHealth() {
       try {
-        const response = await api.get<HealthResponse>('/health')
+        const response = await fetch(N8N_WEBHOOK_URL, { method: 'POST' })
         if (!cancelled) {
-          setStatus(response.data.status)
+          if (response.ok) {
+            const data: N8nHealthResponse = await response.json()
+            setIsActive(data.status === 'UP')
+            setLastCheck(data.timestamp)
+          } else {
+            setIsActive(false)
+          }
         }
-      } catch (err: unknown) {
+      } catch {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Serviço indisponível'
-          setError(message)
+          setIsActive(false)
         }
       } finally {
         if (!cancelled) {
@@ -36,10 +48,13 @@ export function useHealth(): UseHealthReturn {
 
     checkHealth()
 
+    const intervalId = setInterval(checkHealth, POLLING_INTERVAL)
+
     return () => {
       cancelled = true
+      clearInterval(intervalId)
     }
   }, [])
 
-  return { status, isLoading, error }
+  return { isActive, isLoading, lastCheck }
 }

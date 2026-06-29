@@ -182,3 +182,86 @@ Este arquivo consolida todos os comandos, personas e contextos de Inteligência 
 > 2. Certifique-se de que o evento 'onDrop' capture corretamente o ficheiro através de 'e.dataTransfer.files[0]' e repasse-o imediatamente para a função de upload gerida pelo hook 'useFileUpload' do Vitor.
 > 3. Se houver um estado visual de "isDragging" (para mudar a cor da borda ou mostrar um overlay quando o arquivo está sobre a tela), garanta que ele seja limpo ('false') tanto no 'onDragLeave' quanto no fim do 'onDrop'.
 > 4. Verifique se o input invisível do tipo file (caso o usuário prefira clicar em vez de arrastar) também está disparando a mesma função de upload corretamente através do evento 'onChange'.
+
+---
+
+## 4. Health Status da API via n8n (Juliano)
+
+### Contexto Arquitetural
+
+O frontend exibe o status da API (Ativo/Inativo) no Header via **n8n como proxy de health check**:
+
+```
+Frontend (React)
+  → POST /webhook/health-check (n8n porta 5678)
+    → GET /api/health          (backend porta 8080)
+  ← { status, timestamp, source: "n8n" }
+  → Exibe HealthStatusBadge no Header
+```
+
+### Hook `useHealth` — `src/hooks/useHealth.ts`
+
+> **Prompt:** Atue como Arquiteto Front-end Sênior especializado em React 19, TypeScript e Custom Hooks. Crie o hook `useHealth` em `src/hooks/useHealth.ts` com polling a cada 30 segundos.
+
+Interface:
+```typescript
+interface UseHealthReturn {
+  isActive: boolean
+  isLoading: boolean
+  lastCheck: string | null
+}
+```
+
+Regras:
+- URL base: `import.meta.env.VITE_N8N_WEBHOOK_URL` com fallback `http://localhost:5678/webhook/health-check`
+- Método: `POST` (sem body)
+- Polling: `setInterval` a cada 30s + chamada imediata na montagem
+- Cleanup: cancelar o interval no unmount
+- `isLoading` true apenas na primeira chamada (não nos polls seguintes)
+- `isActive` true se `response.status === "UP"`
+- `lastCheck` = `response.timestamp` em sucesso; não atualiza em erro
+
+### Componente `HealthStatusBadge` — `src/components/common/HealthStatusBadge.tsx`
+
+> **Prompt:** Atue como UI Engineer React especialista em Tailwind CSS. Crie o componente `HealthStatusBadge` em `src/components/common/HealthStatusBadge.tsx`.
+
+Regras:
+- Componente puro (sem chamadas de API ou estado de negócio)
+- Props: `isActive: boolean`, `lastCheck: string | null`
+- Bolinha 8px (`h-2 w-2`) verde (`bg-green-500`), vermelha (`bg-red-500`) ou cinza (`bg-gray-400`)
+- Texto: "API Ativa", "API Inativa" ou "Verificando..."
+- Se `lastCheck` presente, exibir "Última verificação: HH:mm:ss" formatado com `Intl.DateTimeFormat`
+
+### Integração no Header — `src/components/layout/Header.tsx`
+
+> **Prompt:** Atue como Arquiteto Front-end Sênior. Integre `useHealth` e `HealthStatusBadge` no `Header.tsx`, mantendo a separação Apresentação vs Comportamento.
+
+### MSW — `src/mocks/handlers.ts`
+
+> **Prompt:** Atue como Engenheiro de Software especialista em MSW. Adicione handler para o webhook do n8n em `src/mocks/handlers.ts`.
+
+```typescript
+http.post('*/webhook/health-check', () => {
+  return HttpResponse.json({
+    status: 'UP',
+    timestamp: new Date().toISOString(),
+    source: 'n8n',
+  })
+})
+```
+
+### Variável de Ambiente — `.env`
+
+```env
+VITE_N8N_WEBHOOK_URL=http://localhost:5678/webhook/health-check
+```
+
+### Iteração 2 — Cleanup e Independência dos Projetos
+
+> **Prompt:** Atue como Arquiteto Front-end Sênior. Remova o diretório `n8n/` do frontend e documente a arquitetura: o n8n roda independente no projeto `lab1-n8n`, o frontend apenas consome o endpoint `POST /webhook/health-check`.
+
+**Decisão arquitetural:**
+- `n8n/` removido do repositório — o workflow de health check pertence ao `lab1-n8n/n8n/workflows/001-health-check.json`
+- Frontend conhece apenas o endpoint (`VITE_N8N_WEBHOOK_URL`), sem qualquer dependência de infraestrutura n8n
+- MSW handler mantido para desenvolvimento local sem depender do n8n
+- Hook `useHealth`, componente `HealthStatusBadge` e integração no Header inalterados

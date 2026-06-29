@@ -302,6 +302,15 @@ export const handlers = [
     })
   }),
 
+  // POST /webhook/health-check (n8n proxy)
+  http.post('*/webhook/health-check', () => {
+    return HttpResponse.json({
+      status: 'UP',
+      timestamp: new Date().toISOString(),
+      source: 'n8n',
+    })
+  }),
+
   // POST /api/documents — upload document for RAG ingestion
   http.post('*/api/documents', async ({ request }) => {
     if (!isAuthenticated(request)) return unauthorized()
