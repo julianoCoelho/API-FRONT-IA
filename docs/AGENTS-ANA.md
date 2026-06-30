@@ -51,3 +51,21 @@ Requisitos:
 
 1. format.ts: Crie a função 'formatDate' (para exibir hora/minuto das mensagens) e 'formatFileSize' (converte bytes para KB ou MB de forma amigável).
 2. validation.ts: Crie funções puras para validar o lado do cliente antes do envio, como 'validateFile' (retorna erro visual se não for TXT/PDF ou se passar de 5MB) e 'validateMessage' (verifica se o texto não está vazio).
+
+### 5. Estrutura Visual de Status de Ingestão no FileAttachmentPreview
+
+Atue como UI Engineer React especialista em Tailwind CSS e feedback visual. Expanda o componente 'src/components/chat/FileAttachmentPreview.tsx' para exibir o status de ingestão do documento (Pendente, Processando, Concluído, Falhou) com badges coloridas no tema earth.
+
+Requisitos:
+
+1. Adicione as props opcionais 'status?: DocumentStatus' (importado de 'src/types/ingestion.ts') e 'fileSize?: number' ao componente.
+2. Crie um mapa 'statusConfig' local com labels em português e cores Tailwind no tema earth:
+   - PENDING → 'Pendente', bg-yellow-100 text-yellow-800
+   - PROCESSING → 'Processando', bg-blue-100 text-blue-800
+   - COMPLETED → 'Concluído', bg-green-100 text-green-800
+   - FAILED → 'Falhou', bg-red-100 text-red-800
+3. Renderize o badge de status abaixo da linha do nome do arquivo, com ícone SVG específico para cada estado (relógio para pendente, girando para processando, check-circle para concluído, alerta para falhou).
+4. Exiba o tamanho do arquivo formatado via 'formatFileSize' ao lado do nome (hidden em mobile, visível em sm+).
+5. Quando 'progress' está definido e 'status' não, mostre a barra de progresso de upload (comportamento existente). Quando 'status' está definido, mostre o badge de status.
+6. Atualize 'ChatWindow.tsx' para propagar as novas props no Attachment local.
+7. Em 'ChatPage.tsx', inicialize o attachment com 'status: PENDING' como mock visual imediato, e propague 'fileSize' e 'status' ao longo do fluxo de upload/ingestão.

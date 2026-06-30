@@ -7,6 +7,8 @@ import { FileAttachmentPreview } from './FileAttachmentPreview.tsx'
 interface Attachment {
   fileName: string
   progress?: number
+  status?: string
+  fileSize?: number
 }
 
 interface ChatWindowProps {
@@ -92,6 +94,8 @@ export function ChatWindow({
               key={`${att.fileName}-${index}`}
               fileName={att.fileName}
               progress={att.progress}
+              status={att.status as any}
+              fileSize={att.fileSize}
               onRemove={() => onRemoveAttachment?.(index)}
             />
           ))}

@@ -11,7 +11,8 @@ import ChatWindow from '../components/chat/ChatWindow'
 interface Attachment {
   fileName: string
   progress?: number
-  ingestionStatus?: string | null
+  status?: string | null
+  fileSize?: number
   ingestionError?: string | null
 }
 
@@ -42,7 +43,7 @@ export default function ChatPage() {
   async function handleFileDrop(file: File) {
     if (!file) return
 
-    setAttachments((prev) => [...prev, { fileName: file.name, progress: 0 }])
+    setAttachments((prev) => [...prev, { fileName: file.name, progress: 0, status: 'PENDING', fileSize: file.size }])
 
     const progressInterval = setInterval(() => {
       setAttachments((prev) => {
@@ -64,11 +65,11 @@ export default function ChatPage() {
 
       const doc = await ingestDocument(file)
       if (doc) {
-        updateLastAttachment({ ingestionStatus: doc.status })
+        updateLastAttachment({ status: doc.status })
 
         pollDocumentStatus(doc.id, (completed) => {
           updateLastAttachment({
-            ingestionStatus: completed.status,
+            status: completed.status,
             ingestionError: completed.status === 'FAILED' ? completed.errorMessage : undefined,
           })
 
