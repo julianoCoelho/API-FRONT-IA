@@ -7,22 +7,22 @@ interface IngestionStatusProps {
 
 const statusConfig: Record<DocumentStatus, StatusConfig> = {
   PENDING: {
-    label: 'Pending',
+    label: 'Pendente',
     color: 'bg-yellow-100 text-yellow-800',
     Icon: ClockIcon,
   },
   PROCESSING: {
-    label: 'Processing',
+    label: 'Processando',
     color: 'bg-blue-100 text-blue-800',
     Icon: SyncIcon,
   },
   COMPLETED: {
-    label: 'Completed',
+    label: 'Concluído',
     color: 'bg-green-100 text-green-800',
     Icon: CheckCircleIcon,
   },
   FAILED: {
-    label: 'Failed',
+    label: 'Falhou',
     color: 'bg-red-100 text-red-800',
     Icon: AlertCircleIcon,
   },

@@ -10,6 +10,8 @@ interface Attachment {
   progress?: number
   status?: string
   fileSize?: number
+  ingestionError?: string | null
+  documentId?: string
 }
 
 interface ChatWindowProps {
@@ -21,6 +23,7 @@ interface ChatWindowProps {
   disabled?: boolean
   attachments?: Attachment[]
   onRemoveAttachment?: (index: number) => void
+  onReprocessAttachment?: (index: number) => void
   onExport?: () => void
 }
 
@@ -33,6 +36,7 @@ export function ChatWindow({
   disabled,
   attachments,
   onRemoveAttachment,
+  onReprocessAttachment,
   onExport,
 }: ChatWindowProps) {
   const [isDragging, setIsDragging] = useState(false)
@@ -99,7 +103,9 @@ export function ChatWindow({
               progress={att.progress}
               status={att.status as any}
               fileSize={att.fileSize}
+              ingestionError={att.ingestionError}
               onRemove={() => onRemoveAttachment?.(index)}
+              onReprocess={onReprocessAttachment ? () => onReprocessAttachment(index) : undefined}
             />
           ))}
         </div>
