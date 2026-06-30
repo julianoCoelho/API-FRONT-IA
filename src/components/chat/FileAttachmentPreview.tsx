@@ -1,5 +1,6 @@
 import type { DocumentStatus } from '../../types/ingestion'
 import { formatFileSize } from '../../utils/format'
+import IngestionStatus from '../common/IngestionStatus'
 
 interface FileAttachmentPreviewProps {
   fileName: string
@@ -7,13 +8,8 @@ interface FileAttachmentPreviewProps {
   progress?: number
   status?: DocumentStatus
   fileSize?: number
-}
-
-const statusConfig: Record<DocumentStatus, { label: string; color: string }> = {
-  PENDING: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-  PROCESSING: { label: 'Processando', color: 'bg-blue-100 text-blue-800' },
-  COMPLETED: { label: 'Concluído', color: 'bg-green-100 text-green-800' },
-  FAILED: { label: 'Falhou', color: 'bg-red-100 text-red-800' },
+  ingestionError?: string | null
+  onReprocess?: () => void
 }
 
 export function FileAttachmentPreview({
@@ -22,11 +18,13 @@ export function FileAttachmentPreview({
   progress,
   status,
   fileSize,
+  ingestionError,
+  onReprocess,
 }: FileAttachmentPreviewProps) {
   const isUploading = progress !== undefined && progress > 0 && progress < 100
   const isComplete = progress === 100
   const showProgress = progress !== undefined && !status
-  const currentStatus = status ? statusConfig[status] : null
+  const showReprocess = onReprocess && status && (status === 'FAILED' || status === 'COMPLETED')
 
   return (
     <div className="flex flex-col gap-1.5 rounded-lg bg-gray-100 px-3 py-2 text-sm">
@@ -80,15 +78,24 @@ export function FileAttachmentPreview({
         </div>
       )}
 
-      {currentStatus && (
-        <div className="flex items-center gap-1.5">
-          {status === 'PENDING' && <ClockIcon />}
-          {status === 'PROCESSING' && <SyncIcon />}
-          {status === 'COMPLETED' && <CheckCircleIcon />}
-          {status === 'FAILED' && <AlertCircleIcon />}
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${currentStatus.color}`}>
-            {currentStatus.label}
-          </span>
+      {status && (
+        <div className="flex flex-wrap items-center gap-2">
+          <IngestionStatus status={status} />
+          {ingestionError && status === 'FAILED' && (
+            <span className="text-xs text-red-600 max-w-[200px] truncate" title={ingestionError}>
+              {ingestionError}
+            </span>
+          )}
+          {showReprocess && (
+            <button
+              type="button"
+              onClick={onReprocess}
+              className="flex items-center gap-1 rounded-md border border-earth-sage/50 px-2 py-0.5 text-xs text-earth-forest transition-colors hover:bg-earth-sand/40"
+            >
+              <ReprocessIcon />
+              Reprocessar
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -131,38 +138,10 @@ function DocumentIcon() {
   )
 }
 
-function ClockIcon() {
+function ReprocessIcon() {
   return (
-    <svg className="h-3.5 w-3.5 text-yellow-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  )
-}
-
-function SyncIcon() {
-  return (
-    <svg className="h-3.5 w-3.5 animate-spin text-blue-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0118.8-4.3M22 12.5a10 10 0 01-18.8 4.2" />
-    </svg>
-  )
-}
-
-function CheckCircleIcon() {
-  return (
-    <svg className="h-3.5 w-3.5 text-green-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  )
-}
-
-function AlertCircleIcon() {
-  return (
-    <svg className="h-3.5 w-3.5 text-red-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
   )
 }

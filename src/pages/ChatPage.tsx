@@ -14,13 +14,14 @@ interface Attachment {
   status?: string | null
   fileSize?: number
   ingestionError?: string | null
+  documentId?: string
 }
 
 export default function ChatPage() {
   const { user: _user, logout } = useAuth()
   const { sessions, activeSession, messages, sendMessage, selectSession, createSession, renameSession, deleteSession, exportSessionAsTxt, isSending } = useChat()
   const { uploadFile, isUploading } = useFileUpload()
-  const { ingestDocument, pollDocumentStatus } = useDocuments()
+  const { ingestDocument, pollDocumentStatus, reprocessDocument } = useDocuments()
 
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -65,7 +66,7 @@ export default function ChatPage() {
 
       const doc = await ingestDocument(file)
       if (doc) {
-        updateLastAttachment({ status: doc.status })
+        updateLastAttachment({ status: doc.status, documentId: doc.id })
 
         pollDocumentStatus(doc.id, (completed) => {
           updateLastAttachment({
@@ -89,6 +90,22 @@ export default function ChatPage() {
 
   function handleRemoveAttachment(index: number) {
     setAttachments((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  async function handleReprocessAttachment(index: number) {
+    const att = attachments[index]
+    if (!att.documentId) return
+
+    updateLastAttachment({ status: 'PROCESSING', ingestionError: null })
+
+    await reprocessDocument(att.documentId)
+
+    pollDocumentStatus(att.documentId, (completed) => {
+      updateLastAttachment({
+        status: completed.status,
+        ingestionError: completed.status === 'FAILED' ? completed.errorMessage : undefined,
+      })
+    })
   }
 
   return (
@@ -119,6 +136,7 @@ export default function ChatPage() {
         disabled={isSending || isUploading}
         attachments={attachments}
         onRemoveAttachment={handleRemoveAttachment}
+        onReprocessAttachment={handleReprocessAttachment}
         onExport={exportSessionAsTxt}
       />
 

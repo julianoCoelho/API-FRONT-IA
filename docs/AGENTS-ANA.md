@@ -69,3 +69,36 @@ Requisitos:
 5. Quando 'progress' está definido e 'status' não, mostre a barra de progresso de upload (comportamento existente). Quando 'status' está definido, mostre o badge de status.
 6. Atualize 'ChatWindow.tsx' para propagar as novas props no Attachment local.
 7. Em 'ChatPage.tsx', inicialize o attachment com 'status: PENDING' como mock visual imediato, e propague 'fileSize' e 'status' ao longo do fluxo de upload/ingestão.
+
+### 6. Integração do IngestionStatus + Badges + Botão Reprocessar
+
+Atue como UI Engineer React especialista em composição de componentes e feedback visual. Integre o componente `IngestionStatus` no `FileAttachmentPreview` e adicione botão "Reprocessar" para documentos com status COMPLETED ou FAILED.
+
+Requisitos:
+
+1. **IngestionStatus.tsx — Localização para português:**
+   - Alterar labels de inglês para português: PENDING → "Pendente", PROCESSING → "Processando", COMPLETED → "Concluído", FAILED → "Falhou"
+
+2. **FileAttachmentPreview.tsx — Refatoração do badge de status:**
+   - Substituir o badge inline (com `statusConfig` local e SVGs duplicados) pelo componente `IngestionStatus`
+   - Remover as funções de ícone duplicadas (`ClockIcon`, `SyncIcon`, `CheckCircleIcon`, `AlertCircleIcon`)
+   - Adicionar props:
+     - `ingestionError?: string | null` — mensagem de erro a ser exibida quando FAILED
+     - `onReprocess?: () => void` — callback acionado ao clicar em "Reprocessar"
+   - Exibir mensagem de erro em vermelho abaixo do badge quando `status === 'FAILED'` e `ingestionError` estiver presente
+   - Adicionar botão "Reprocessar" com ícone de sync e borda earth-sage, visível apenas quando `onReprocess` existe e `status` é FAILED ou COMPLETED
+
+3. **ChatWindow.tsx — Propagação de novas props:**
+   - Adicionar `ingestionError?: string | null` e `documentId?: string` ao Attachment local
+   - Adicionar `onReprocessAttachment?: (index: number) => void` às ChatWindowProps
+   - Passar `ingestionError` e `onReprocess` ao FileAttachmentPreview
+
+4. **ChatPage.tsx — Conexão com hook real:**
+   - Adicionar `documentId?: string` ao Attachment da página
+   - Extrair `reprocessDocument` do hook `useDocuments()`
+   - Armazenar `documentId: doc.id` após `ingestDocument()` bem-sucedido
+   - Implementar `handleReprocessAttachment(index)`:
+     - Atualiza attachment para `status: 'PROCESSING'` e limpa `ingestionError`
+     - Chama `reprocessDocument(att.documentId)`
+     - Reinicia o polling via `pollDocumentStatus`
+   - Passar `onReprocessAttachment={handleReprocessAttachment}` ao ChatWindow
