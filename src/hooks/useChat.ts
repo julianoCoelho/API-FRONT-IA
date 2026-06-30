@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { chatService } from '../services/chat.service'
 import { chatDeleteService } from '../services/chat-delete.service'
 import type { ChatSessionResponse, MessageResponse, SourceResponse } from '../types/api'
@@ -24,6 +24,7 @@ export function useChat(): UseChatReturn {
   const [activeSession, setActiveSession] = useState<ChatSessionResponse | null>(null)
   const [messages, setMessages] = useState<MessageResponse[]>([])
   const [sourcesByMessageId, setSourcesByMessageId] = useState<Record<string, SourceResponse[]>>({})
+  const sendingRef = useRef(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -90,7 +91,8 @@ export function useChat(): UseChatReturn {
   }, [loadMessages])
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!activeSession) return
+    if (!activeSession || sendingRef.current) return
+    sendingRef.current = true
     setIsSending(true)
     setError(null)
     try {
@@ -123,6 +125,7 @@ export function useChat(): UseChatReturn {
       }
     } finally {
       setIsSending(false)
+      sendingRef.current = false
     }
   }, [activeSession])
 

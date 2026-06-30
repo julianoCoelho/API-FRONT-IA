@@ -137,3 +137,45 @@ Precisamos garantir que o Critério de Aceite (DoD Compacto) do plano de sprint 
 
 **Standards:** Preservar a separação de responsabilidades — o hook mantém fontes separadas das mensagens; o merge acontece apenas no ponto de renderização.
 **Purpose:** Garantir que fontes RAG sejam exibidas corretamente no `SourcePanel` dentro de cada bolha de mensagem do assistente.
+
+---
+
+### 10. Correção de Bugs e Ajustes de Spec — Duplicação de Mensagens, Score Bar, Truncamento, IngestionStatus
+
+**Context:** Correção de bugs pós-integração e alinhamento fino com a especificação `FRONTEND-SPEC-PARTE2.md`. Três frentes: (A) bug de mensagem duplicada, (B) SourcePanel com score bar + truncamento, (C) IngestionStatus com props e labels corretos.
+
+**Role:** Arquiteto Front-end Sênior / Tech Lead.
+
+**Instructions (A) — Bug de mensagem duplicada:**
+
+O `sendMessage` em `useChat.ts` não tinha proteção contra reentrância: entre o clique e `setIsSending(true)`, um segundo clique rápido entrava na função e adicionava outro `userMessage` otimista ao estado. Corrigido com `useRef` guard:
+
+1. Importar `useRef` de `react`
+2. Criar `const sendingRef = useRef(false)`
+3. No início de `sendMessage`: `if (!activeSession || sendingRef.current) return; sendingRef.current = true`
+4. No `finally`: `sendingRef.current = false`
+
+**Instructions (B) — SourcePanel com score bar e truncamento:**
+
+1. Adicionar função `scoreColor(score)` que retorna classe Tailwind: verde (`bg-green-500`) para ≥ 0.8, amarelo (`bg-yellow-500`) para ≥ 0.6, vermelho (`bg-red-500`) para < 0.6
+2. Adicionar função `truncate(text, max)` que corta em `max` caracteres e adiciona `…`
+3. No card de cada fonte: exibir `excerpt` truncado em 200 caracteres com botão "Mostrar mais"/"Mostrar menos"
+4. Abaixo do excerpt: barra de progresso horizontal com largura = `score * 100%` e cor conforme `scoreColor`
+5. Porcentagem numérica ao lado (`Math.round(score * 100)%`)
+
+**Instructions (C) — IngestionStatus conforme spec:**
+
+1. Adicionar props `fileName?: string` e `errorMessage?: string | null` à interface
+2. Exibir `fileName` antes do badge de status (truncado em 180px)
+3. Atualizar labels: `PROCESSING` → "Processando…", `COMPLETED` → "Indexado", `FAILED` → "Falha na indexação"
+4. Quando `status === 'PROCESSING'`: renderizar barra indeterminada com `animate-pulse` 
+5. Quando `status === 'FAILED'` e `errorMessage` presente: exibir mensagem de erro em vermelho
+
+**Arquivos alterados na branch `fix/rag-data-flow-and-spec-gaps`:**
+- `src/hooks/useChat.ts` — `useRef` guard contra reentrância em sendMessage
+- `src/components/chat/SourcePanel.tsx` — score bar colorida, truncamento excerpt, "Mostrar mais/menos"
+- `src/components/common/IngestionStatus.tsx` — props `fileName`/`errorMessage`, labels da spec, barra PROCESSING
+- `docs/AGENTS-JULIANO.md` — registro deste prompt
+
+**Standards:** Manter tipagem forte, alinhamento com o contrato OpenAPI, e separação Apresentação vs Comportamento.
+**Purpose:** Eliminar bug de UX (mensagem duplicada), atender requisitos visuais da Parte 2 (score bar, labels, estados de ingestão).

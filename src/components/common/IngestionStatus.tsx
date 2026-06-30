@@ -2,6 +2,8 @@ import type { DocumentStatus, StatusConfig } from '../../types/ingestion'
 
 interface IngestionStatusProps {
   status: DocumentStatus
+  fileName?: string
+  errorMessage?: string | null
   className?: string
 }
 
@@ -12,34 +14,49 @@ const statusConfig: Record<DocumentStatus, StatusConfig> = {
     Icon: ClockIcon,
   },
   PROCESSING: {
-    label: 'Processando',
+    label: 'Processando…',
     color: 'bg-blue-100 text-blue-800',
     Icon: SyncIcon,
   },
   COMPLETED: {
-    label: 'Concluído',
+    label: 'Indexado',
     color: 'bg-green-100 text-green-800',
     Icon: CheckCircleIcon,
   },
   FAILED: {
-    label: 'Falhou',
+    label: 'Falha na indexação',
     color: 'bg-red-100 text-red-800',
     Icon: AlertCircleIcon,
   },
 }
 
-export function IngestionStatus({ status, className = '' }: IngestionStatusProps) {
+export function IngestionStatus({ status, fileName, errorMessage, className = '' }: IngestionStatusProps) {
   const { label, color, Icon } = statusConfig[status]
 
   return (
-    <span
-      role="status"
-      aria-label={label}
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors duration-200 hover:brightness-95 ${color} ${className}`}
-    >
-      <Icon aria-hidden="true" className="h-3.5 w-3.5" />
-      {label}
-    </span>
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <div className="flex items-center gap-2">
+        {fileName && (
+          <span className="max-w-[180px] truncate text-xs text-earth-dark/70">{fileName}</span>
+        )}
+        <span
+          role="status"
+          aria-label={label}
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors duration-200 hover:brightness-95 ${color}`}
+        >
+          <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+          {label}
+        </span>
+      </div>
+      {status === 'PROCESSING' && (
+        <div className="h-1 w-full rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-full w-1/2 rounded-full bg-blue-500 animate-pulse" />
+        </div>
+      )}
+      {status === 'FAILED' && errorMessage && (
+        <span className="text-xs text-red-600 leading-relaxed">{errorMessage}</span>
+      )}
+    </div>
   )
 }
 
