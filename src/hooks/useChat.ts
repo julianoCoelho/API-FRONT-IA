@@ -91,6 +91,7 @@ export function useChat(): UseChatReturn {
   }, [loadMessages])
 
   const sendMessage = useCallback(async (content: string) => {
+    console.log('[useChat:sendMessage] INÍCIO', { content: content.slice(0, 30), sendingRef: sendingRef.current })
     if (!activeSession || sendingRef.current) return
     sendingRef.current = true
     setIsSending(true)
@@ -103,12 +104,14 @@ export function useChat(): UseChatReturn {
         content,
         timestamp: new Date().toISOString(),
       }
+      console.log('[useChat:sendMessage] add userMessage', { id: userMessage.id })
       setMessages((prev) => [...prev, userMessage])
 
       const { sources, ...response } = await chatService.sendMessage({
         chatSessionId: activeSession.id,
         content,
       })
+      console.log('[useChat:sendMessage] add assistant', { id: response.id })
       setMessages((prev) => [...prev, response])
       if (sources?.length) {
         setSourcesByMessageId((prev) => ({ ...prev, [response.id]: sources }))
@@ -124,6 +127,7 @@ export function useChat(): UseChatReturn {
         setError(message)
       }
     } finally {
+      console.log('[useChat:sendMessage] FINALLY', { sendingRef: sendingRef.current })
       setIsSending(false)
       sendingRef.current = false
     }
