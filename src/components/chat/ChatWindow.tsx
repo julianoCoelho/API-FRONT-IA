@@ -1,5 +1,6 @@
 import { useState, type DragEvent } from 'react'
 import type { Message } from './types.ts'
+import type { SourceResponse } from '../../types/api'
 import { MessageList } from './MessageList.tsx'
 import { MessageInput } from './MessageInput.tsx'
 import { FileAttachmentPreview } from './FileAttachmentPreview.tsx'
@@ -13,6 +14,7 @@ interface Attachment {
 
 interface ChatWindowProps {
   messages: Message[]
+  sourcesByMessageId: Record<string, SourceResponse[]>
   onSendMessage: (text: string) => void
   onAttach?: () => void
   onFileDrop?: (file: File) => void
@@ -24,6 +26,7 @@ interface ChatWindowProps {
 
 export function ChatWindow({
   messages,
+  sourcesByMessageId,
   onSendMessage,
   onAttach,
   onFileDrop,
@@ -85,7 +88,7 @@ export function ChatWindow({
         </div>
       )}
 
-      <MessageList messages={messages} />
+      <MessageList messages={messages} sourcesByMessageId={sourcesByMessageId} />
 
       {attachments && attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 border-t border-earth-sand/50 px-4 py-2">

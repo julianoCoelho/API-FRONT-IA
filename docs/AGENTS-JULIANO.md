@@ -110,3 +110,30 @@ Precisamos garantir que o Critério de Aceite (DoD Compacto) do plano de sprint 
 
 **Standards:** Manter tipagem forte e alinhamento com o contrato OpenAPI. Remover código morto e duplicado.
 **Purpose:** Garantir consistência tipológica com o backend e eliminar resíduos de depuração.
+
+---
+
+### 9. Integração de Dados RAG — Fluxo sourcesByMessageId na Árvore de Componentes
+
+**Context:** Integração de dados RAG — o hook `useChat` já populava corretamente `sourcesByMessageId` no `sendMessage()`, mas o dado nunca era repassado pela árvore de componentes. O `MessageBubble` nunca recebia `sources`, e o `SourcePanel` nunca era renderizado.
+
+**Role:** Arquiteto Front-end Sênior / Tech Lead.
+
+**Instructions:** Conecte o `sourcesByMessageId` desde o `useChat` até o `MessageBubble`, passando por `ChatPage`, `ChatWindow` e `MessageList`:
+
+1. **`src/pages/ChatPage.tsx`** — Destruturar `sourcesByMessageId` de `useChat()` e passar como prop `<ChatWindow sourcesByMessageId={...} />`.
+
+2. **`src/components/chat/ChatWindow.tsx`** — Adicionar prop `sourcesByMessageId: Record<string, SourceResponse[]>` à interface `ChatWindowProps`. Importar `SourceResponse` de `../../types/api`. Repassar a prop para `<MessageList sourcesByMessageId={...} />`.
+
+3. **`src/components/chat/MessageList.tsx`** — Adicionar prop `sourcesByMessageId` à interface `MessageListProps`. Importar `SourceResponse` de `../../types/api`. No `map` de mensagens, fundir fontes: `sources={msg.sources ?? sourcesByMessageId[msg.id]}`, usando o dicionário como fallback.
+
+4. **Nenhuma alteração** em `types.ts`, hooks, serviços ou mocks — toda a lógica de negócio já existia, apenas o encadeamento de props estava quebrado.
+
+**Arquivos alterados:**
+- `src/pages/ChatPage.tsx` — destruturação e passagem de `sourcesByMessageId`
+- `src/components/chat/ChatWindow.tsx` — interface e passagem de `sourcesByMessageId`
+- `src/components/chat/MessageList.tsx` — fallback `sourcesByMessageId[msg.id]` no render
+- `docs/AGENTS-JULIANO.md` — registro deste prompt
+
+**Standards:** Preservar a separação de responsabilidades — o hook mantém fontes separadas das mensagens; o merge acontece apenas no ponto de renderização.
+**Purpose:** Garantir que fontes RAG sejam exibidas corretamente no `SourcePanel` dentro de cada bolha de mensagem do assistente.

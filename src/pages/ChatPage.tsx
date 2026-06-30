@@ -18,7 +18,7 @@ interface Attachment {
 
 export default function ChatPage() {
   const { user: _user, logout } = useAuth()
-  const { sessions, activeSession, messages, sendMessage, selectSession, createSession, renameSession, deleteSession, exportSessionAsTxt, isSending } = useChat()
+  const { sessions, activeSession, messages, sendMessage, selectSession, createSession, renameSession, deleteSession, exportSessionAsTxt, isSending, sourcesByMessageId } = useChat()
   const { uploadFile, isUploading } = useFileUpload()
   const { ingestDocument, pollDocumentStatus } = useDocuments()
 
@@ -113,6 +113,7 @@ export default function ChatPage() {
 
       <ChatWindow
         messages={messages}
+        sourcesByMessageId={sourcesByMessageId}
         onSendMessage={sendMessage}
         onAttach={handleAttach}
         onFileDrop={handleFileDrop}

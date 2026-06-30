@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react'
 import type { Message } from './types.ts'
+import type { SourceResponse } from '../../types/api'
 import { MessageBubble } from './MessageBubble.tsx'
 
 interface MessageListProps {
   messages: Message[]
+  sourcesByMessageId: Record<string, SourceResponse[]>
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, sourcesByMessageId }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -16,7 +18,7 @@ export function MessageList({ messages }: MessageListProps) {
   return (
     <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
       {messages.map((msg) => (
-        <MessageBubble key={msg.id} content={msg.content} role={msg.role} sources={msg.sources} />
+        <MessageBubble key={msg.id} content={msg.content} role={msg.role} sources={msg.sources ?? sourcesByMessageId[msg.id]} />
       ))}
       <div ref={bottomRef} />
     </div>
