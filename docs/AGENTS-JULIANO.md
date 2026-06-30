@@ -225,3 +225,60 @@ Enter ↑  →  handleKeyUp: isProcessingRef = false, isEnterRef = false
 
 **Standards:** Manter tipagem forte, tratamento de erros com preservação de texto, separação Apresentação vs Comportamento.
 **Purpose:** Eliminar definitivamente a duplicação de mensagens causada por key repeat com MSW/API rápida, sem depender de ciclo de render do React.
+
+---
+
+### 12. Limpeza de Console.logs e Ativação do Feedback Visual `isSending`
+
+**Context:** Após a correção definitiva da duplicação (item 11), foram identificados resíduos de depuração e um problema de feedback visual: `console.log` espalhados em `MessageInput.tsx` e `useChat.ts`, e `isSending` nunca era setado como `true`, impedindo o `disabled` reativo no textarea/botão.
+
+**Role:** Arquiteto Front-end Sênior / Tech Lead.
+
+**Instructions:** Realize as seguintes ações de limpeza e correção:
+
+1. **Ativar `setIsSending(true)` em `MessageInput.tsx`:** Adicionar `setIsSending(true)` antes do `await onSendMessage(trimmed)` para que o estado `isDisabled` no textarea e botão de envio ative reativamente durante o envio, impedindo interação visual.
+
+2. **Remover `console.log` de depuração em `MessageInput.tsx`:** Remover 4 logs (`[KEYDOWN]`, `[SEND]`, `[SEND:finally]`, `[CLICK]`) que eram resíduos da iteração de debug do lock síncrono.
+
+3. **Remover `console.log` de depuração em `useChat.ts`:** Remover 6 logs (`[loadMessages] INÍCIO`, `[loadMessages] DADOS`, `[useChat:sendMessage] INÍCIO`, `add userMessage`, `add assistant`, `FINALLY`) que não são mais necessários após a verificação do fluxo de mensagens.
+
+**Arquivos alterados:**
+- `src/components/chat/MessageInput.tsx` — `setIsSending(true)` adicionado, 4 console.log removidos
+- `src/hooks/useChat.ts` — 6 console.log removidos
+- `docs/AGENTS-JULIANO.md` — registro deste prompt
+
+**Standards:** Manter tipagem forte, remover código de depuração antes de merge, preservar separação Apresentação vs Comportamento.
+**Purpose:** Garantir feedback visual correto durante o envio de mensagens e eliminar poluição de console para produção.
+
+---
+
+### 13. Correção Definitiva da Duplicação — AND-Gate Lock (sendDone + keyUpDone)
+
+**Context:** A iteração 11 usava `isProcessingRef` liberado em `handleKeyUp`, mas isso criava uma janela de reentrância no cenário de toque rápido (quick tap-release): o `handleKeyUp` disparava antes do `handleSend` completar, liberando o lock e permitindo um segundo pressionamento duplicar a mensagem.
+
+**Role:** Arquiteto Front-end Sênior / Tech Lead.
+
+**Instruções:** Substituir o lock de evento único por um AND-gate: o lock `isProcessingRef` só é liberado quando **ambos** `handleSend.finally` (`sendDoneRef`) E `handleKeyUp` (`keyUpDoneRef`) tiverem ocorrido.
+
+**Mecanismo:**
+
+1. **`tryReleaseLock()`** — função que checa se ambos `sendDoneRef` e `keyUpDoneRef` são `true`; se sim, zera os três refs.
+2. **`handleKeyDown`** — antes de ativar o lock, reseta `sendDoneRef` e `keyUpDoneRef` para `false`.
+3. **`handleKeyUp`** — seta `keyUpDoneRef = true` e chama `tryReleaseLock()`.
+4. **`handleSend.finally`** — seta `sendDoneRef = true` e chama `tryReleaseLock()`.
+5. **Botão onClick** — seta `keyUpDoneRef = true` imediatamente (não há KeyUp para clique), garantindo que o lock libere em `finally`.
+
+**Comportamento por cenário:**
+
+| Cenário | Sequência | Resultado |
+|---|---|---|
+| Enter segurado (key repeat) | sendDone → keyUpDone | Lock só libera no KeyUp — repeats bloqueados |
+| Quick tap + repress | keyUpDone → sendDone | Lock só libera no finally — reentrância bloqueada |
+| Clique no botão | keyUpDone já true | Lock libera no finally — comportamento normal |
+
+**Arquivos alterados:**
+- `src/components/chat/MessageInput.tsx` — `isEnterRef` substituído por `sendDoneRef` + `keyUpDoneRef` com AND-gate
+- `docs/AGENTS-JULIANO.md` — registro deste prompt
+
+**Standards:** Manter tipagem forte, lock sem depender de timing de eventos ou microtasks.
+**Purpose:** Eliminar completamente a duplicação de mensagens em todos os cenários de interação (key repeat, quick tap, clique no botão).

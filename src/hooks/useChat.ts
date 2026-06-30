@@ -47,23 +47,11 @@ export function useChat(): UseChatReturn {
     loadSessions()
   }, [loadSessions])
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      console.log('[messages] ATUALIZADO', messages.map(m => ({
-        id: m.id.slice(0, 8), role: m.role, content: m.content.slice(0, 30)
-      })))
-    }
-  }, [messages])
-
   const loadMessages = useCallback(async (sessionId: string) => {
-    console.log('[loadMessages] INÍCIO', { sessionId })
     setIsLoading(true)
     setError(null)
     try {
       const data = await chatService.getMessages(sessionId)
-      console.log('[loadMessages] DADOS', { count: data.length }, data.map(m => ({
-        id: m.id.slice(0, 8), role: m.role, content: m.content.slice(0, 30)
-      })))
       setMessages(data)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar mensagens'
@@ -103,7 +91,6 @@ export function useChat(): UseChatReturn {
   }, [loadMessages])
 
   const sendMessage = useCallback(async (content: string) => {
-    console.log('[useChat:sendMessage] INÍCIO', { content: content.slice(0, 30), sendingRef: sendingRef.current })
     if (!activeSession || sendingRef.current) return
     sendingRef.current = true
     setIsSending(true)
@@ -116,14 +103,12 @@ export function useChat(): UseChatReturn {
         content,
         timestamp: new Date().toISOString(),
       }
-      console.log('[useChat:sendMessage] add userMessage', { id: userMessage.id })
       setMessages((prev) => [...prev, userMessage])
 
       const { sources, ...response } = await chatService.sendMessage({
         chatSessionId: activeSession.id,
         content,
       })
-      console.log('[useChat:sendMessage] add assistant', { id: response.id })
       setMessages((prev) => [...prev, response])
       if (sources?.length) {
         setSourcesByMessageId((prev) => ({ ...prev, [response.id]: sources }))
@@ -139,7 +124,6 @@ export function useChat(): UseChatReturn {
         setError(message)
       }
     } finally {
-      console.log('[useChat:sendMessage] FINALLY', { sendingRef: sendingRef.current })
       setIsSending(false)
       sendingRef.current = false
     }

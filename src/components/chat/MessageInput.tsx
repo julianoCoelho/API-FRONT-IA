@@ -11,15 +11,24 @@ export function MessageInput({ onSendMessage, onAttach, disabled: parentDisabled
   const [isSending, setIsSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isProcessingRef = useRef(false)
-  const isEnterRef = useRef(false)
+  const sendDoneRef = useRef(false)
+  const keyUpDoneRef = useRef(false)
+
+  function tryReleaseLock() {
+    if (sendDoneRef.current && keyUpDoneRef.current) {
+      isProcessingRef.current = false
+      sendDoneRef.current = false
+      keyUpDoneRef.current = false
+    }
+  }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       e.stopPropagation()
-      console.log('[KEYDOWN]', { isProcessing: isProcessingRef.current, parentDisabled, text: text.trim().slice(0, 20) })
       if (!isProcessingRef.current && !parentDisabled) {
-        isEnterRef.current = true
+        sendDoneRef.current = false
+        keyUpDoneRef.current = false
         isProcessingRef.current = true
         handleSend()
       }
@@ -28,27 +37,28 @@ export function MessageInput({ onSendMessage, onAttach, disabled: parentDisabled
 
   function handleKeyUp(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter') {
-      isEnterRef.current = false
-      isProcessingRef.current = false
+      keyUpDoneRef.current = true
+      tryReleaseLock()
     }
   }
 
   async function handleSend() {
     const trimmed = text.trim()
-    console.log('[SEND]', { trimmed: trimmed.slice(0, 20), isProcessing: isProcessingRef.current, isSending })
-    if (!trimmed) return
+    if (!trimmed) {
+      isProcessingRef.current = false
+      return
+    }
 
     try {
+      setIsSending(true)
       await onSendMessage(trimmed)
       setText('')
     } catch (error) {
       console.error("Erro ao enviar:", error)
     } finally {
-      console.log('[SEND:finally]', { isEnter: isEnterRef.current, isProcessing: isProcessingRef.current })
       setIsSending(false)
-      if (!isEnterRef.current) {
-        isProcessingRef.current = false
-      }
+      sendDoneRef.current = true
+      tryReleaseLock()
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
         textareaRef.current.focus()
@@ -87,7 +97,7 @@ export function MessageInput({ onSendMessage, onAttach, disabled: parentDisabled
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
+              d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
             />
           </svg>
         </button>
@@ -109,9 +119,10 @@ export function MessageInput({ onSendMessage, onAttach, disabled: parentDisabled
       <button
         type="button"
         onClick={() => {
-          console.log('[CLICK]', { isProcessing: isProcessingRef.current, text: text.trim().slice(0, 20) })
           if (!isProcessingRef.current) {
             isProcessingRef.current = true
+            sendDoneRef.current = false
+            keyUpDoneRef.current = true
             handleSend()
           }
         }}
