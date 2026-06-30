@@ -6,25 +6,53 @@ interface MessageInputProps {
   disabled?: boolean
 }
 
-export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInputProps) {
+export function MessageInput({ onSendMessage, onAttach, disabled: parentDisabled }: MessageInputProps) {
   const [text, setText] = useState('')
+  const [isSending, setIsSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-
-  function handleSend() {
-    const trimmed = text.trim()
-    if (!trimmed) return
-    onSendMessage(trimmed)
-    setText('')
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.focus()
-    }
-  }
+  const isProcessingRef = useRef(false)
+  const isEnterRef = useRef(false)
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      e.stopPropagation()
+      console.log('[KEYDOWN]', { isProcessing: isProcessingRef.current, parentDisabled, text: text.trim().slice(0, 20) })
+      if (!isProcessingRef.current && !parentDisabled) {
+        isEnterRef.current = true
+        isProcessingRef.current = true
+        handleSend()
+      }
+    }
+  }
+
+  function handleKeyUp(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter') {
+      isEnterRef.current = false
+      isProcessingRef.current = false
+    }
+  }
+
+  async function handleSend() {
+    const trimmed = text.trim()
+    console.log('[SEND]', { trimmed: trimmed.slice(0, 20), isProcessing: isProcessingRef.current, isSending })
+    if (!trimmed) return
+
+    try {
+      await onSendMessage(trimmed)
+      setText('')
+    } catch (error) {
+      console.error("Erro ao enviar:", error)
+    } finally {
+      console.log('[SEND:finally]', { isEnter: isEnterRef.current, isProcessing: isProcessingRef.current })
+      setIsSending(false)
+      if (!isEnterRef.current) {
+        isProcessingRef.current = false
+      }
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.focus()
+      }
     }
   }
 
@@ -35,13 +63,15 @@ export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInput
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`
   }
 
+  const isDisabled = parentDisabled || isSending
+
   return (
     <div className="flex items-end gap-2 border-t border-earth-sand/50 bg-earth-cream/60 backdrop-blur-sm px-4 py-3">
       {onAttach && (
         <button
           type="button"
           onClick={onAttach}
-          disabled={disabled}
+          disabled={isDisabled}
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-earth-sage transition-colors hover:bg-earth-sand/40 hover:text-earth-forest disabled:opacity-50"
           aria-label="Anexar arquivo"
         >
@@ -68,7 +98,9 @@ export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInput
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
         onInput={handleInput}
+        disabled={isDisabled}
         placeholder="Digite sua mensagem..."
         rows={1}
         className="min-h-[40px] flex-1 resize-none rounded-xl border border-earth-sand px-3 py-2.5 text-sm placeholder:text-earth-sage/50 focus:border-earth-olive focus:outline-none focus:ring-1 focus:ring-earth-olive disabled:cursor-not-allowed disabled:opacity-50 bg-white/80"
@@ -76,8 +108,14 @@ export function MessageInput({ onSendMessage, onAttach, disabled }: MessageInput
 
       <button
         type="button"
-        onClick={handleSend}
-        disabled={disabled || !text.trim()}
+        onClick={() => {
+          console.log('[CLICK]', { isProcessing: isProcessingRef.current, text: text.trim().slice(0, 20) })
+          if (!isProcessingRef.current) {
+            isProcessingRef.current = true
+            handleSend()
+          }
+        }}
+        disabled={isDisabled || !text.trim()}
         className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-earth-olive text-white shadow-sm transition-colors hover:bg-earth-forest disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Enviar mensagem"
       >

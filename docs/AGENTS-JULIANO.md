@@ -179,3 +179,49 @@ O `sendMessage` em `useChat.ts` não tinha proteção contra reentrância: entre
 
 **Standards:** Manter tipagem forte, alinhamento com o contrato OpenAPI, e separação Apresentação vs Comportamento.
 **Purpose:** Eliminar bug de UX (mensagem duplicada), atender requisitos visuais da Parte 2 (score bar, labels, estados de ingestão).
+
+---
+
+### 11. Correção Definitiva da Duplicação de Mensagens — Lock Síncrono com `isProcessingRef` + `handleKeyUp`
+
+**Context:** As tentativas anteriores (sendingRef no useChat, disabled no textarea, isSending state local) falharam porque com MSW o ciclo completo `sendMessage` → `finally` executava na mesma microtask, liberando o lock antes do próximo keydown por repetição de tecla (key repeat em ~33-300ms).
+
+**Role:** Arquiteto Front-end Sênior / Tech Lead.
+
+**Instructions:**
+
+A correção final usa um `useRef` como lock síncrono que SÓ é liberado no `handleKeyUp` (quando o usuário solta a tecla Enter), e não no `finally` do `handleSend`. Para clique do botão (sem keyup), o lock é liberado no `finally` normalmente.
+
+Mecanismos:
+
+1. **`isProcessingRef` (`useRef(false)`)** — lock síncrono compartilhado entre todos os closures. Setado como `true` em `handleKeyDown` antes de chamar `handleSend()`.
+2. **`isEnterRef` (`useRef(false)`)** — flag para distinguir Enter de clique no botão.
+3. **`handleKeyUp`** — libera `isProcessingRef.current = false` e `isEnterRef.current = false` quando Enter é solto. Enquanto a tecla estiver pressionada, nenhum keydown repetido consegue furar o lock.
+4. **`handleSend`** — `async`, sem lock próprio (o lock já veio do `handleKeyDown` ou do `onClick`). No `finally`, só libera o ref se `!isEnterRef.current` (caso clique).
+5. **Botão `onClick`** — também seta `isProcessingRef.current = true` antes de chamar `handleSend()`, garantindo que clique+Enter simultâneos não gerem duplicata.
+
+**Fluxo corrigido (Enter):**
+```
+Enter ↓  →  handleKeyDown: isProcessingRef = true, isEnterRef = true
+         →  handleSend → await onSendMessage → MSW responde na microtask
+         →  finally: NÃO libera ref (isEnterRef.current === true)
+         →  key repeat: isProcessingRef === true → BLOQUEADO ✓
+Enter ↑  →  handleKeyUp: isProcessingRef = false, isEnterRef = false
+```
+
+**Arquivos alterados:**
+- `src/components/chat/MessageInput.tsx` — `isProcessingRef`, `isEnterRef`, `handleKeyUp`, `onKeyUp` no textarea, `onClick` no botão com lock
+- `docs/PLANO-FIX-DUPLICATE-MENSAGEM.md` — plano atualizado
+- `docs/AGENTS-JULIANO.md` — registro desta iteração
+
+**Defesa em camadas:**
+
+| Camada | Mecanismo | Escopo |
+|---|---|---|
+| 1ª | `isProcessingRef` + `isEnterRef` | `MessageInput` (síncrono entre closures) |
+| 2ª | `handleKeyUp` libera o ref | `MessageInput` (só quando tecla é solta) |
+| 3ª | `disabled={isDisabled}` no `<textarea>` | Reativo (após re-render) |
+| 4ª | `sendingRef` no `useChat.sendMessage` | Dentro de `sendMessage` (legado) |
+
+**Standards:** Manter tipagem forte, tratamento de erros com preservação de texto, separação Apresentação vs Comportamento.
+**Purpose:** Eliminar definitivamente a duplicação de mensagens causada por key repeat com MSW/API rápida, sem depender de ciclo de render do React.
