@@ -1,12 +1,12 @@
 import React, { type SVGProps } from 'react'
 
-export type DocumentStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'ERROR'
+export type DocumentStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 
 export const DOCUMENT_STATUS: Record<string, DocumentStatus> = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
-  READY: 'READY',
-  ERROR: 'ERROR',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
 } as const
 
 export interface StatusConfig {

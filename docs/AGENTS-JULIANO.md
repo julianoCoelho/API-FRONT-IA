@@ -83,3 +83,30 @@ Precisamos garantir que o Critério de Aceite (DoD Compacto) do plano de sprint 
 **Instructions:** Crie `src/services/document.service.ts` com métodos `ingestDocument`, `getDocumentStatus` e `reprocessDocument`. Use o `axios` configurado com o interceptor de JWT.
 **Standards:** Use tipagens de `api.ts`. Garantir tratamento de erro básico.
 **Purpose:** Abstrair complexidade de rede para a camada de Hooks.
+
+---
+
+### 8. Limpeza e Padronização — Remoção de console.logs, Migração de SourceResponse e Atualização de Status de Ingestão
+
+**Context:** Limpeza e padronização pós-integração.
+**Role:** Arquiteto Front-end Sênior / Tech Lead.
+**Instructions:** Realize as seguintes ações de limpeza e padronização no código:
+
+1. **Remover console.logs do App.tsx:** Os blocos de depuração temporários nos componentes `ProtectedRoute` e `RootRedirect` foram removidos, deixando o arquivo limpo apenas com lógica de navegação e providers.
+
+2. **Migrar SourceResponse de `src/types/source.ts` para `src/types/api.ts`:** A interface `SourceResponse` duplicada em `source.ts` (shape antigo: `{ id, documentName, page?, snippet, score? }`) foi removida. O código agora usa exclusivamente a definição em `api.ts` (shape alinhado ao OpenAPI: `{ documentId, documentName, chunkIndex, excerpt, score }`). Os componentes afetados (`SourcePanel.tsx`, `MessageBubble.tsx`, `chat/types.ts`) foram atualizados nos imports e no acesso às propriedades (`documentId`, `excerpt`, `chunkIndex`). O arquivo `src/types/source.ts` foi deletado.
+
+3. **Atualizar `src/types/ingestion.ts` com os novos status OpenAPI:** O tipo `DocumentStatus` migrou de `'PENDING' | 'PROCESSING' | 'READY' | 'ERROR'` para `'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'`, alinhado ao `DocumentStatus` do contrato OpenAPI em `api.ts`. O mapeamento `DOCUMENT_STATUS` e o componente `IngestionStatus.tsx` foram atualizados correspondentemente.
+
+**Arquivos alterados:**
+- `src/App.tsx` — remoção de console.logs
+- `src/types/source.ts` — deletado
+- `src/types/ingestion.ts` — status atualizados
+- `src/components/chat/SourcePanel.tsx` — import e props migrados
+- `src/components/chat/MessageBubble.tsx` — import migrado
+- `src/components/chat/types.ts` — import migrado
+- `src/components/common/IngestionStatus.tsx` — keys/labels dos status atualizados
+- `docs/AGENTS-JULIANO.md` — registro deste prompt
+
+**Standards:** Manter tipagem forte e alinhamento com o contrato OpenAPI. Remover código morto e duplicado.
+**Purpose:** Garantir consistência tipológica com o backend e eliminar resíduos de depuração.

@@ -16,13 +16,13 @@ const statusConfig: Record<DocumentStatus, StatusConfig> = {
     color: 'bg-blue-100 text-blue-800',
     Icon: SyncIcon,
   },
-  READY: {
-    label: 'Ready',
+  COMPLETED: {
+    label: 'Completed',
     color: 'bg-green-100 text-green-800',
     Icon: CheckCircleIcon,
   },
-  ERROR: {
-    label: 'Error',
+  FAILED: {
+    label: 'Failed',
     color: 'bg-red-100 text-red-800',
     Icon: AlertCircleIcon,
   },

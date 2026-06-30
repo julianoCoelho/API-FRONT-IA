@@ -1,5 +1,5 @@
 import type { MessageRole } from './types.ts'
-import type { SourceResponse } from '../../types/source'
+import type { SourceResponse } from '../../types/api'
 import { SourcePanel } from './SourcePanel.tsx'
 
 interface MessageBubbleProps {

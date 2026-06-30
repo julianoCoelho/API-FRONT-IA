@@ -1,4 +1,4 @@
-import type { SourceResponse } from '../../types/source'
+import type { SourceResponse } from '../../types/api'
 
 export type MessageRole = 'USER' | 'ASSISTANT'
 

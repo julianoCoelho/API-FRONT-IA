@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { SourceResponse } from '../../types/source'
+import type { SourceResponse } from '../../types/api'
 
 interface SourcePanelProps {
   sources: SourceResponse[]
@@ -30,14 +30,12 @@ export function SourcePanel({ sources, className = '' }: SourcePanelProps) {
         <div className="overflow-hidden">
           <ul className="mt-2 space-y-2">
             {sources.map((source) => (
-              <li key={source.id} className="rounded-lg bg-earth-sand/20 border border-earth-sand/40 p-2.5">
+              <li key={source.documentId} className="rounded-lg bg-earth-sand/20 border border-earth-sand/40 p-2.5">
                 <div className="flex items-baseline gap-1">
                   <span className="truncate font-semibold text-earth-forest">{source.documentName}</span>
-                  {source.page != null && (
-                    <span className="shrink-0 text-xs text-earth-khaki">· p. {source.page}</span>
-                  )}
+                  <span className="shrink-0 text-xs text-earth-khaki">· chunk {source.chunkIndex}</span>
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-earth-dark/80">{source.snippet}</p>
+                <p className="mt-1 text-sm leading-relaxed text-earth-dark/80">{source.excerpt}</p>
               </li>
             ))}
           </ul>
