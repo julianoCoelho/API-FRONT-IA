@@ -33,6 +33,7 @@ export function IngestionStatus({ status, className = '' }: IngestionStatusProps
 
   return (
     <span
+      key={status}
       role="status"
       aria-label={label}
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors duration-200 hover:brightness-95 ${color} ${className}`}
